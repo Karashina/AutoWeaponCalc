@@ -1,0 +1,61 @@
+options swap_delay=12 debug=true iteration=1000 duration=99.09 workers=50 mode=sl;
+
+sucrose char lvl=90/90 cons=6 talent=9,9,9;
+sucrose add weapon="hakushin" refine=5 lvl=90/90;
+sucrose add set="viridescentvenerer" count=5;
+sucrose add stats hp=4780 atk=311 em=559.5 ; #main
+
+xingqiu char lvl=90/90 cons=6 talent=9,9,9;
+xingqiu add weapon="<weapon>" refine=<refine> lvl=90/90;
+xingqiu add set="eosf" count=4;
+xingqiu add stats hp=4780 atk=311 atk%=0.466 hydro%=0.466 cr=0.311 ; #main
+
+fischl char lvl=90/90 cons=6 talent=9,9,9;
+fischl add weapon="thestringless" refine=3 lvl=90/90;
+fischl add set="totm" count=4;
+fischl add stats hp=4780 atk=311 atk%=0.466 electro%=0.466 cr=0.311 ; #main
+
+beidou char lvl=90/90 cons=6 talent=9,9,9;
+beidou add weapon="serpentspine" refine=5 lvl=90/90;
+beidou add set="eosf" count=4;
+#beidou add stats er=-0.306 em=206 atk%=0.24; #mailedflower
+#beidou add stats atk%=-0.496 cr=0.331; #beacon
+#beidou add stats hp=4780 atk=311 atk%=0.466 electro%=0.466 cr=0.311 ; #main
+beidou add stats hp=4780 atk=311 atk%=0.466 electro%=0.466 cd=0.622 ; #main
+
+active beidou;
+target lvl=100 pos=0,0 resist=.1 hp=999999999999;
+#target lvl=100 pos=0,-2 resist=.1 hp=999999999999;
+energy every interval=480,720 amount=1;
+
+for let i = 0; i < 4; i = i + 1 {
+    beidou skill, burst, attack;
+    fischl skill, attack;
+    xingqiu burst, attack, skill, dash, attack:2;
+    sucrose attack:2, skill, dash,
+            attack:3, dash, 
+            attack:2, burst;
+    while .fischl.oz-duration > 180 {
+        if .sucrose.skill.charge > 1 && .sucrose.normal > 3 {
+            sucrose skill, dash;
+        }
+        else {
+            sucrose attack;
+        }
+    }
+    beidou skill[counter=1], attack;
+    fischl attack:2, burst;
+    sucrose swap;
+
+    while .fischl.oz-duration > 120 {
+        if .sucrose.skill.charge > 1 && .sucrose.normal > 3 {
+            sucrose skill, dash;
+        }
+        else {
+            sucrose attack;
+        }
+    }
+
+
+    print("done");
+}
