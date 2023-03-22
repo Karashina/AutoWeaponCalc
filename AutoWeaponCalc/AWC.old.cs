@@ -40,13 +40,22 @@ namespace ConsoleApp1
             string weptypeinput = v2;
 
             //精錬ランク指定
-            Console.WriteLine("Type the refinement rank of the weapon to calculate [1-5] :");
+            Console.WriteLine("Type the refinement rank of the weapon to calculate [0=auto][1-5] :");
             string? v3 = Console.ReadLine();
             if (v3 == null)
             {
                 Environment.Exit(0);
             }
             string refineinput = v3;
+
+            //精錬ランク指定
+            Console.WriteLine("Do you want to use artifact mode? [y|n]:");
+            string? v4 = Console.ReadLine();
+            if (v4 == null)
+            {
+                Environment.Exit(0);
+            }
+            string artifactmode = v4;
 
             //最後に出力する表を作成
             DataSet dataSet = new DataSet();
@@ -115,12 +124,35 @@ namespace ConsoleApp1
             {
                 wtable.Rows.Add(line.h2, line.h3);
                 string wname = line.h2;
-                string refine = refineinput;
+                string wnamejp = line.h1;
+                string refine;
+
+                //自動精錬ランク設定
+                if (refineinput == "0")
+                {
+                    if (line.h3 == "0")
+                    {
+                        refine = "5";
+                    }
+                    else if (line.h3 == "1")
+                    {
+                        refine = "1";
+                    }
+                    else
+                    {
+                        refine = refineinput;
+                    }
+                }
+                else
+                {
+                    refine = refineinput;
+                }
+
                 string charname = charinput;
                 txtwriter(wname, charname, refine, false);
                 float DPS = getDPS(charname);
-                Console.WriteLine(line.h2 + ":" + DPS);
-                table.Rows.Add(wname, refine, DPS);
+                Console.WriteLine(wname + ":" + DPS);
+                table.Rows.Add(wnamejp, refine, DPS);
                 txtwriter(wname, charname, refine, true);
             }
 
