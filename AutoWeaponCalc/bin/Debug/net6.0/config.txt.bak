@@ -7,7 +7,7 @@ sucrose add stats hp=4780 atk=311 em=559.5 ; #main
 
 xingqiu char lvl=90/90 cons=6 talent=9,9,9;
 xingqiu add weapon="<weapon>" refine=<refine> lvl=90/90;
-xingqiu add set="<a>" count=<p>;
+xingqiu add set="gd" count=4;
 xingqiu add stats hp=4780 atk=311 atk%=0.466 hydro%=0.466 cr=0.311 ; #main
 
 fischl char lvl=90/90 cons=6 talent=9,9,9;

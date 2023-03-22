@@ -293,7 +293,7 @@ namespace CalcsheetGenerator
             {
                 //クリーンアップモード
                 oldtextwep = charname + " add weapon=" + "\"" + wname + "\"" + " refine=" + refine;
-                newtextwep = charname + " add weapon=\"<weapon>\" refine=<refine>";
+                newtextwep = charname + " add weapon=\"<w>\" refine=<r>";
                 StringBuilder strread = new StringBuilder();
                 string[] strarray = File.ReadAllLines(filename, Encoding.UTF8);
                 for (int i = 0; i < strarray.GetLength(0); i++)
