@@ -64,7 +64,7 @@ namespace CalcsheetGenerator
 
         public static bool startup_autoswitch()
         {
-            //モード指定(auto /manual)
+            //モード指定(auto / manual)
             Console.WriteLine("mode selection(auto / manual) [a|m] :");
             bool modesel = false;
             string? autoswitch = Console.ReadLine();
@@ -210,8 +210,8 @@ namespace CalcsheetGenerator
 
             // カラム名の追加
             weptable.Columns.Add("wepname");
-            weptable.Columns.Add("rarity");
-            weptable.Columns.Add("crit");
+            weptable.Columns.Add("rank");
+            weptable.Columns.Add("dps");
 
             // DataSetにDataTableを追加
             wdataSet.Tables.Add(weptable);
@@ -267,7 +267,7 @@ namespace CalcsheetGenerator
                     {
                         refine = "5";
                     }
-                    else if (line.w3 == "1")
+                    else
                     {
                         refine = "1";
                     }
