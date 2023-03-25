@@ -10,24 +10,24 @@ config.txtの編成、ローテーションを使って、指定したキャラ�
 
 1. run.batで起動
 
-2: mode selection(auto / manual) [ a | m ]
+2. mode selection(auto / manual) [ a | m ]
 モード設定です
 autoに設定すると5と6にそれぞれ0とyを入れて飛ばします
 
-3: Type the name of the character to calculate:
+3. Type the name of the character to calculate:
 計算したいキャラクターの名前を入力してください
 キャラ名はconfigファイルに記載のある通りに入力してください
 
-4: Type the weapon type of the character to calculate [sword|claymore|bow|catalyst|polearm] :
+4. Type the weapon type of the character to calculate [sword|claymore|bow|catalyst|polearm] :
 キャラクターの武器種を設定してください(ここ手動ですごめんなさい)
 武器csvファイルの名前を指定しているだけなので別にcsvを用意して同じディレクトリにぶち込めばカスタム武器リストをつくれます
 
-5: Type the refinement rank of the weapon to calculate [0=auto][1-5] :
+5. Type the refinement rank of the weapon to calculate [0=auto][1-5] :
 武器の精錬ランクを設定してください
 0にすると★5はR1、★4はR5で計算されます
 武器csvのrarityで管理しています(1=★5, 0=★4)
 
-6: Do you want to use artifact mode? [y|n]:
+6. Do you want to use artifact mode? [y|n]:
 聖遺物モードを使用するかの選択肢です
 使用する場合artifacts.csvに書かれている聖遺物を上から使ってそれぞれの武器DPSを計算します
 
