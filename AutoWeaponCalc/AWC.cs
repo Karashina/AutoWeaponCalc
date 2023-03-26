@@ -95,6 +95,7 @@ namespace CalcsheetGenerator
 
             //配列にして返す
             string[] auto_settingstoreturn = new string[4] { a1, a2, "0", "y" };
+            auto_settingstoreturn[3] = "0";
             return auto_settingstoreturn;
         }
 
@@ -258,18 +259,20 @@ namespace CalcsheetGenerator
                 weptable.Rows.Add(line.w2, line.w3);
                 string wname = line.w2;
                 string wnamejp = line.w1;
-                
+                bool autorefinemode = false;
 
                 //rarityに応じた自動精錬ランク設定
                 if (refine == "0")
                 {
-                    if (line.w3 == "0")
+                    autorefinemode = true;
+
+                    if (line.w3 == "1")
                     {
-                        refine = "5";
+                        refine = "1";
                     }
                     else
                     {
-                        refine = "1";
+                        refine = "5";
                     }
                 }
 
@@ -278,6 +281,11 @@ namespace CalcsheetGenerator
                 Console.WriteLine(wname + ":" + DPS); //Consoleに進捗出力
                 table.Rows.Add(wnamejp, refine, DPS); //tableに結果を格納
                 txtwriter(amode, wname, character, refine, true, i4p, a1, a2); //configファイルを元に戻す
+
+                if(autorefinemode == true)
+                {
+                    refine = "0";
+                }
             }
 
             DataTableToCsv(table, "table_" + a1 + a2 + ".csv", true);
