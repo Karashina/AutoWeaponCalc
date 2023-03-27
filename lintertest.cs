@@ -18,8 +18,9 @@ namespace CalcsheetGenerator
     class Primary
     {
         //データを格納するレコード
-        record Data(string w1, string w2, string w3);
+        record weaponData(string w1, string w2, string w3);
         record artiData(string a1, string a2, string a3);
+        record Dt(string d1, string d2, string d3);
 
         public static void Main(string[] args)
         {
@@ -132,28 +133,8 @@ namespace CalcsheetGenerator
             return man_settingstoreturn;
         }
 
-        public static void withartifactmode(DataTable tb, string ch, string wt, string rf)//CSV読み込みと計算
+        public static List<Dt> opencsv(string fileName, bool isFirstLineSkip, List<Dt> lines)
         {
-            DataSet adataSet = new DataSet();
-            DataTable artitable = new DataTable("aTable");
-
-            // カラム名の追加
-            artitable.Columns.Add("is4pc");
-            artitable.Columns.Add("artiname1");
-            artitable.Columns.Add("artiname2");
-
-            // DataSetにDataTableを追加
-            adataSet.Tables.Add(artitable);
-
-            //ファイル名
-            var fileName = "artifacts.csv";
-
-            //先頭行を読み取りするかどうか
-            var isFirstLineSkip = true;
-
-            //取得したデータを保存するリスト
-            var lines = new List<artiData>();
-
             try
             {
                 //ファイルを開く
@@ -173,7 +154,7 @@ namespace CalcsheetGenerator
                         }
 
                         //tableにデータを追加する
-                        lines.Add(new artiData(line[0], line[1], line[2]));
+                        lines.Add(new Dt(line[0], line[1], line[2]));
                     }
                 }
             }
@@ -181,6 +162,30 @@ namespace CalcsheetGenerator
             {
                 Console.WriteLine(ex.Message);
             }
+
+            return lines;
+        }
+
+        public static void withartifactmode(DataTable tb, string ch, string wt, string rf)//CSV読み込みと計算
+        {
+            DataSet adataSet = new DataSet();
+            DataTable artitable = new DataTable("aTable");
+
+            // カラム名の追加
+            artitable.Columns.Add("is4pc");
+            artitable.Columns.Add("artiname1");
+            artitable.Columns.Add("artiname2");
+
+            // DataSetにDataTableを追加
+            adataSet.Tables.Add(artitable);
+
+            //ファイル名
+            var fileName = "artifacts.csv";
+
+            //取得したデータを保存するリスト
+            var lines = new List<artiData>();
+
+            lines = opencsv(fileName, true, lines);
 
             foreach (var line in lines)
             {
@@ -224,35 +229,9 @@ namespace CalcsheetGenerator
             var isFirstLineSkip = true;
 
             //取得したデータを保存するリスト
-            var lines = new List<Data>();
+            var lines = new List<weaponData>();
 
-            try
-            {
-                //ファイルを開く
-                using (StreamReader sr = new StreamReader(fileName))
-                {
-                    while (0 <= sr.Peek())
-                    {
-                        //カンマ区切りで分割して配列で格納する
-                        var line = sr.ReadLine()?.Split(',');
-                        if (line is null) continue;
-
-                        //先頭行は項目名なのでスキップする
-                        if (isFirstLineSkip)
-                        {
-                            isFirstLineSkip = false;
-                            continue;
-                        }
-
-                        //リストにデータを追加する
-                        lines.Add(new Data(line[0], line[1], line[2]));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
+            lines = opencsv(fileName, true, lines);
 
             foreach (var line in lines)
             {
@@ -291,6 +270,24 @@ namespace CalcsheetGenerator
             DataTableToCsv(table, "table_" + a1 + a2 + ".csv", true);
         }
 
+        public static void txtreplacer(string filename, string oldtext, string newtext)
+        {
+            StringBuilder strread = new StringBuilder();
+            string[] strarray = File.ReadAllLines(filename, Encoding.UTF8);
+            for (int i = 0; i < strarray.GetLength(0); i++)
+            {
+                if (strarray[i].Contains(oldtext) == true)
+                {
+                    strread.AppendLine(strarray[i].Replace(oldtext, newtext));
+                }
+                else
+                {
+                    strread.AppendLine(strarray[i]);
+                }
+            }
+            File.WriteAllText(filename, strread.ToString());
+        }
+
         public static void txtwriter(bool am, string wname, string charname, string refine, bool cleanup, bool is4pc, string aname1, string aname2)
         {
             string filename = "config.txt";
@@ -300,50 +297,25 @@ namespace CalcsheetGenerator
             if (cleanup == true)
             {
                 //クリーンアップモード
-                oldtextwep = charname + " add weapon=" + "\"" + wname + "\"" + " refine=" + refine;
-                newtextwep = charname + " add weapon=\"<w>\" refine=<r>";
-                StringBuilder strread = new StringBuilder();
-                string[] strarray = File.ReadAllLines(filename, Encoding.UTF8);
-                for (int i = 0; i < strarray.GetLength(0); i++)
-                {
-                    if (strarray[i].Contains(oldtextwep) == true)
-                    {
-                        strread.AppendLine(strarray[i].Replace(oldtextwep, newtextwep));
-                    }
-                    else
-                    {
-                        strread.AppendLine(strarray[i]);
-                    }
-                }
-                File.WriteAllText(filename, strread.ToString());
+                string texttoclean = newtextwep;
+                string oldtext = oldtextwep;
+                txtreplacer(filename, texttoclean, oldtext);
                 Debug.WriteLine("Cleaned");
             }
             else
             {
                 //置き換えモード
-                StringBuilder strread = new StringBuilder();
-                string[] strarray = File.ReadAllLines(filename, Encoding.UTF8);
-                for (int i = 0; i < strarray.GetLength(0); i++)
-                {
-                    if (strarray[i].Contains(oldtextwep) == true)
-                    {
-                        strread.AppendLine(strarray[i].Replace(oldtextwep, newtextwep));
-                    }
-                    else
-                    {
-                        strread.AppendLine(strarray[i]);
-                    }
-                }
-                File.WriteAllText(filename, strread.ToString());
+                txtreplacer(filename, oldtextwep, newtextwep);
                 Debug.WriteLine("Replaced");
             }
 
             if (am == true)
             {
+                //念のため空白を入れておく(たぶん必要ないかもしれない)
                 string oldtextart = "";
                 string newtextart = "";
 
-                if (is4pc == true )//4セットか2セット混合かで分岐
+                if (is4pc == true)//4セットか2セット混合かで分岐
                 {
                     //4セット混合
                     oldtextart = charname + " add set=\"<a>\" count=<p>";
@@ -359,51 +331,15 @@ namespace CalcsheetGenerator
                 if (cleanup == true)
                 {
                     //クリーンアップモード
-                    if (is4pc == true)//4セットか2セット混合かで分岐
-                    {
-                        //4セット混合
-                        oldtextart = charname + " add set=" + "\"" + aname1 + "\"" + " count=4";
-                        newtextart = charname + " add set=\"<a>\" count=<p>";
-                    }
-                    else
-                    {
-                        //2セット混合
-                        oldtextart = charname + " add set=" + "\"" + aname1 + "\"" + " count=2;" + Environment.NewLine + charname + " add set=" + "\"" + aname2 + "\"" + " count=2;";
-                        newtextart = charname + " add set=\"<a>\" count=<p>;";
-                    }
-
-                    StringBuilder strread = new StringBuilder();
-                    string[] strarray = File.ReadAllLines(filename, Encoding.UTF8);
-                    for (int i = 0; i < strarray.GetLength(0); i++)
-                    {
-                        if (strarray[i].Contains(oldtextart) == true)
-                        {
-                            strread.AppendLine(strarray[i].Replace(oldtextart, newtextart));
-                        }
-                        else
-                        {
-                            strread.AppendLine(strarray[i]);
-                        }
-                    }
-                    File.WriteAllText(filename, strread.ToString());
+                    string texttoclean = newtextart;
+                    string oldtext = oldtextart;
+                    txtreplacer(filename, texttoclean, oldtext);
+                    Debug.WriteLine("Cleaned");
                 }
                 else
                 {
-                    //置き換えモード
-                    StringBuilder strread = new StringBuilder();
-                    string[] strarray = File.ReadAllLines(filename, Encoding.UTF8);
-                    for (int i = 0; i < strarray.GetLength(0); i++)
-                    {
-                        if (strarray[i].Contains(oldtextart) == true)
-                        {
-                            strread.AppendLine(strarray[i].Replace(oldtextart, newtextart));
-                        }
-                        else
-                        {
-                            strread.AppendLine(strarray[i]);
-                        }
-                    }
-                    File.WriteAllText(filename, strread.ToString());
+                    txtreplacer(filename, oldtextart, newtextart);
+                    Debug.WriteLine("Replaced");
                 }
             }
         }
