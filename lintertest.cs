@@ -1,17 +1,8 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
-using System.Xml.Serialization;
-using System.Runtime.Intrinsics.X86;
+using System.Diagnostics;
 using System.IO;
-using System.Data;
-using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using System.IO.Enumeration;
-using static System.Net.Mime.MediaTypeNames;
-using System.Reflection.PortableExecutable;
-using System.Runtime.CompilerServices;
-using System.Xml.Linq;
 
 namespace CalcsheetGenerator
 {
@@ -54,7 +45,7 @@ namespace CalcsheetGenerator
             //CSV読み込み
             if (setting[3] == "y")
             {
-               withartifactmode(tableOut, setting[0], setting[1], setting[2]);
+                withartifactmode(tableOut, setting[0], setting[1], setting[2]);
             }
             else
             {
@@ -123,13 +114,13 @@ namespace CalcsheetGenerator
             string artifactmode = v4;
 
             //nullが入ったら強制終了
-            if (new string[] { v1 , v2 , v3 , v4 }.Contains(null))
+            if (new string[] { v1, v2, v3, v4 }.Contains(null))
             {
                 Environment.Exit(0);
             }
 
             //配列にして返す
-            string[] man_settingstoreturn = new string[4] { v1, v2, v3, v4 }; 
+            string[] man_settingstoreturn = new string[4] { v1, v2, v3, v4 };
             return man_settingstoreturn;
         }
 
@@ -209,7 +200,7 @@ namespace CalcsheetGenerator
 
         public static void weaponcalc(bool amode, DataTable table, string character, string weptype, string refine, bool i4p, string a1, string a2)//CSV読み込みと計算
         {
-            
+
             //一時的に武器名を格納する表を作成
             DataSet wdataSet = new DataSet();
             DataTable weptable = new DataTable("WTable");
@@ -261,7 +252,7 @@ namespace CalcsheetGenerator
                 table.Rows.Add(wnamejp, refine, DPS); //tableに結果を格納
                 txtwriter(amode, wname, character, refine, true, i4p, a1, a2); //configファイルを元に戻す
 
-                if(autorefinemode == true)
+                if (autorefinemode == true)
                 {
                     refine = "0";
                 }
@@ -293,7 +284,7 @@ namespace CalcsheetGenerator
             string filename = "config.txt";
             string oldtextwep = charname + " add weapon=\"<w>\" refine=<r>";
             string newtextwep = charname + " add weapon=" + "\"" + wname + "\"" + " refine=" + refine;
-            
+
             if (cleanup == true)
             {
                 //クリーンアップモード
