@@ -3,7 +3,7 @@
 /out
 
 # Visual Studio output
-.vs/AutoWeaponCalc
+.vs
 *.suo
 *.user
 _ReSharper.*
