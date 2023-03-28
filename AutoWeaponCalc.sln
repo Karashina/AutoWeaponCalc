@@ -3,7 +3,24 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWeaponCalc", "AutoWeaponCalc\AutoWeaponCalc.csproj", "{167369B5-4316-41CA-AEAE-79FAB07289CB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWeaponCalc", "src\AutoWeaponCalc.csproj", "{167369B5-4316-41CA-AEAE-79FAB07289CB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WeaponData", "WeaponData", "{26061C02-BDF7-4203-A74A-7F1BF3AD671F}"
+	ProjectSection(SolutionItems) = preProject
+		resource\weaponData\bow.csv = resource\weaponData\bow.csv
+		resource\weaponData\catalyst.csv = resource\weaponData\catalyst.csv
+		resource\weaponData\claymore.csv = resource\weaponData\claymore.csv
+		resource\weaponData\polearm.csv = resource\weaponData\polearm.csv
+		resource\weaponData\sword.csv = resource\weaponData\sword.csv
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "input", "input", "{5C68AAD0-26D7-4185-880D-B75745687F9D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "exapmle", "exapmle", "{BA94C91D-D4E5-41E9-A515-91664058B023}"
+	ProjectSection(SolutionItems) = preProject
+		resource\input\example\artifacts.csv = resource\input\example\artifacts.csv
+		resource\input\example\config.txt = resource\input\example\config.txt
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,5 +38,8 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B4D82CA1-A554-45A4-8FF0-26BB9AF75D67}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BA94C91D-D4E5-41E9-A515-91664058B023} = {5C68AAD0-26D7-4185-880D-B75745687F9D}
 	EndGlobalSection
 EndGlobal
