@@ -5,7 +5,9 @@ VisualStudioVersion = 17.3.32825.248
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AutoWeaponCalc", "src\AutoWeaponCalc.csproj", "{167369B5-4316-41CA-AEAE-79FAB07289CB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WeaponData", "WeaponData", "{26061C02-BDF7-4203-A74A-7F1BF3AD671F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resource", "resource", "{122F18B6-B71D-4F7B-8ECF-410F02753F35}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "weaponData", "weaponData", "{26061C02-BDF7-4203-A74A-7F1BF3AD671F}"
 	ProjectSection(SolutionItems) = preProject
 		resource\weaponData\bow.csv = resource\weaponData\bow.csv
 		resource\weaponData\catalyst.csv = resource\weaponData\catalyst.csv
@@ -41,5 +43,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BA94C91D-D4E5-41E9-A515-91664058B023} = {5C68AAD0-26D7-4185-880D-B75745687F9D}
+		{26061C02-BDF7-4203-A74A-7F1BF3AD671F} = {122F18B6-B71D-4F7B-8ECF-410F02753F35}
+		{5C68AAD0-26D7-4185-880D-B75745687F9D} = {122F18B6-B71D-4F7B-8ECF-410F02753F35}
 	EndGlobalSection
 EndGlobal
