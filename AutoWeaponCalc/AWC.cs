@@ -243,8 +243,8 @@ namespace CalcsheetGenerator
 
             foreach (var line in lines)
             {
-                string wnamejp = line.w1;//レコード1行目:日本語武器名
-                string wname = line.w2;//レコード2行目:gcsim内部武器名
+                string wnamejp = line.w1;//日本語武器名
+                string wname = line.w2;//gcsim内部武器名
                 bool autorefinemode = false;//自動精錬ランク設定初期化
 
                 //rarityに応じた自動精錬ランク設定
