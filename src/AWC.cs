@@ -146,7 +146,7 @@ namespace CalcsheetGenerator
             adataSet.Tables.Add(artitable);
 
             //ファイル名
-            var fileName = "artifacts.csv";
+            var fileName = "../resource/input/artifacts.csv";
 
             //先頭行を読み取りするかどうか
             var isFirstLineSkip = true;
@@ -218,7 +218,7 @@ namespace CalcsheetGenerator
             wdataSet.Tables.Add(weptable);
 
             //ファイル名
-            var fileName = weptype + ".csv";
+            var fileName = "../resource/weaponData/" + weptype + ".csv";
 
             //先頭行を読み取りするかどうか
             var isFirstLineSkip = true;
@@ -293,7 +293,7 @@ namespace CalcsheetGenerator
 
         public static void txtwriter(bool am, string wname, string charname, string refine, bool cleanup, bool is4pc, string aname1, string aname2)
         {
-            string filename = "config.txt";
+            string filename = "../resource/input/config.txt";
             string oldtextwep = charname + " add weapon=\"<w>\" refine=<r>";
             string newtextwep = charname + " add weapon=" + "\"" + wname + "\"" + " refine=" + refine;
             
@@ -422,10 +422,10 @@ namespace CalcsheetGenerator
             gcsim.StartInfo.RedirectStandardError = true;
 
             // gcsimを起動
-            gcsim.StartInfo.FileName = "gcsim.exe";
+            gcsim.StartInfo.FileName = "../resource/execBinary/gcsim.exe";
 
             // gcsimに渡す引数
-            string txtname = "config.txt";
+            string txtname = "../resource/input/config.txt";
             gcsim.StartInfo.Arguments = "-c=" + txtname + " -substatOptim=true -out=optim.txt";
 
             // プロセス起動1回目

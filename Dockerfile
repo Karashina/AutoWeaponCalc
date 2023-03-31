@@ -2,22 +2,18 @@ ARG ARCH=amd64
 ARG TAG=6.0-bullseye-slim-$ARCH
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /source
+WORKDIR /app
 
 # copy csproj and restore as distinct layers
 COPY *.sln .
-COPY AutoWeaponCalc/*.csproj ./AutoWeaponCalc/
+COPY src/*.csproj ./src/
 RUN dotnet restore
 
 # copy everything else and build app
-COPY AutoWeaponCalc/. ./AutoWeaponCalc/
+COPY src/. ./src/
 
-WORKDIR /source/AutoWeaponCalc
+COPY resource/ ./resource/
+RUN chmod 755 ./resource/execBinary/gcsim
+WORKDIR /app/src
 
-COPY resource/input .
-COPY resource/weaponData .
-COPY resource/gcsim .
-
-RUN chmod 755 gcsim
-
-RUN dotnet publish -c release -o /app --no-restore
+RUN dotnet publish -c release -o /app/bin --no-restore
