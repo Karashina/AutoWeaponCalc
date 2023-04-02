@@ -1,5 +1,5 @@
-## AutoWeaponCalc (AWC)
-### 起動例
+# AutoWeaponCalc (AWC)
+## 起動例
 ```
 mode selection(auto / manual) [a|m] :
 a
