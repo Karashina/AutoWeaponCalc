@@ -1,6 +1,6 @@
 # AutoWeaponCalc (AWC)
 ## 起動例
-```
+```log
 mode selection(auto / manual) [a|m] :
 a
 Type the name of the character to calculate:
@@ -74,7 +74,7 @@ gcsimのコンフィグファイルです　<br>
 - artifacts.csv　<br>
 聖遺物モードを使用する場合、2行目から、「<4セットか>,<聖遺物名1>,<聖遺物名2>」の様式で記述してください　<br>
 
-> <4セットか>   
+> <4セットか>  
 > `0`: 4セットではない  
 > `1`: 4セットである  
 > <聖遺物名1> ここに書いたとおりにconfig.txtへ書き込まれます  
