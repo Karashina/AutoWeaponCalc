@@ -301,13 +301,13 @@ namespace CalcsheetGenerator
             string oldtextwep = charname + " add weapon=\"<w>\" refine=<r>";
             string newtextwep = charname + " add weapon=" + "\"" + weaponname + "\"" + " refine=" + refine;
             
-            string oldtextart = charname + " add set=\"<a>\" count=<p>";//置き換え前の文章（聖遺物）
+            string oldtextart = charname + " add set=\"<a>\" count=<p>;";//置き換え前の文章（聖遺物）
             string newtextart;//変数だけ作っておく
 
             if (is4pc == true)//聖遺物モード:4セットか2セット混合かで分岐
             {
                 //4セット混合
-                newtextart = charname + " add set=" + "\"" + artiname1 + "\"" + " count=4";//置き換え後の文章（聖遺物）
+                newtextart = charname + " add set=" + "\"" + artiname1 + "\"" + " count=4;";//置き換え後の文章（聖遺物）
             }
             else
             {
