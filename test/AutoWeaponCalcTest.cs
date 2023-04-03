@@ -9,6 +9,7 @@ namespace CalcsheetGeneratorTest {
             //pass
         }
 
+        // teardown
         public void Dispose()
         {
             //pass
@@ -38,7 +39,7 @@ namespace CalcsheetGeneratorTest {
             Assert.Equal(false, AWC.Startup_autoswitch());
         }
 
-                // モード指定なしでfalseを返すこと
+        // モード指定なしでfalseを返すこと
         [Fact]
         public void nomal_Other_Startup_autoswitch()
         {
