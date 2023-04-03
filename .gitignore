@@ -10,3 +10,4 @@ _ReSharper.*
 bin
 obj
 packages
+src/Properties/PublishProfiles/FolderProfile.pubxml

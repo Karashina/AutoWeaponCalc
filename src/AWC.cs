@@ -196,8 +196,11 @@ namespace CalcsheetGenerator
                     aname2 = "";//聖遺物名2にnullが入らないようにする
                 }
 
+
+
                 Console.WriteLine("Initialize calculation for artifact " + aname1 + aname2); //開始メッセージ
                 Weaponcalc(true, table, charname, weapontype, refine, is4pc, aname1, aname2);
+                table.Clear();//次の聖遺物のため書き出し用リストを初期化
                 Console.WriteLine("Calculation completed for artifact " + aname1 + aname2); //終了メッセージ
             }
         }
@@ -275,7 +278,7 @@ namespace CalcsheetGenerator
             }
 
             DataTableToCsv(table, "table_" + artiname1 + artiname2 + ".csv", true);
-            lines.Clear();//次の聖遺物のため書き出し用リストを初期化
+            lines.Clear();//念のためlinesもクリア
         }
 
         public static void Txtreplacer(string filename, string oldtext, string newtext) //txtファイルの内容を置き換える
