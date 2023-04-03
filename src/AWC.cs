@@ -15,7 +15,7 @@ using System.Xml.Linq;
 
 namespace CalcsheetGenerator
 {
-    class AWC
+    public class AWC
     {
         //データを格納するレコード
         record Data(string w1, string w2, string w3);
@@ -299,7 +299,7 @@ namespace CalcsheetGenerator
         {
             string filename = "../resource/input/config.txt";
             string oldtextwep = charname + " add weapon=\"<w>\" refine=<r>";
-            string newtextwep = charname + " add weapon=" + "\"" + wname + "\"" + " refine=" + refine;
+            string newtextwep = charname + " add weapon=" + "\"" + weaponname + "\"" + " refine=" + refine;
             
             string oldtextart = charname + " add set=\"<a>\" count=<p>";//置き換え前の文章（聖遺物）
             string newtextart;//変数だけ作っておく
