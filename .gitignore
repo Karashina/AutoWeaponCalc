@@ -1,0 +1,12 @@
+#output file
+.DS_Store
+/out
+
+# Visual Studio output
+.vs
+*.suo
+*.user
+_ReSharper.*
+bin
+obj
+packages
