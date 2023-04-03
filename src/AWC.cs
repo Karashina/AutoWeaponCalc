@@ -275,6 +275,7 @@ namespace CalcsheetGenerator
             }
 
             DataTableToCsv(table, "table_" + artiname1 + artiname2 + ".csv", true);
+            lines.Clear();//次の聖遺物のため書き出し用リストを初期化
         }
 
         public static void Txtreplacer(string filename, string oldtext, string newtext) //txtファイルの内容を置き換える
