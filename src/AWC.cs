@@ -196,8 +196,11 @@ namespace CalcsheetGenerator
                     aname2 = "";//聖遺物名2にnullが入らないようにする
                 }
 
+
+
                 Console.WriteLine("Initialize calculation for artifact " + aname1 + aname2); //開始メッセージ
                 Weaponcalc(true, table, charname, weapontype, refine, is4pc, aname1, aname2);
+                table.Clear();//次の聖遺物のため書き出し用リストを初期化
                 Console.WriteLine("Calculation completed for artifact " + aname1 + aname2); //終了メッセージ
             }
         }
@@ -275,6 +278,7 @@ namespace CalcsheetGenerator
             }
 
             DataTableToCsv(table, "table_" + artiname1 + artiname2 + ".csv", true);
+            lines.Clear();//念のためlinesもクリア
         }
 
         public static void Txtreplacer(string filename, string oldtext, string newtext) //txtファイルの内容を置き換える
@@ -301,13 +305,13 @@ namespace CalcsheetGenerator
             string oldtextwep = charname + " add weapon=\"<w>\" refine=<r>";
             string newtextwep = charname + " add weapon=" + "\"" + weaponname + "\"" + " refine=" + refine;
             
-            string oldtextart = charname + " add set=\"<a>\" count=<p>";//置き換え前の文章（聖遺物）
+            string oldtextart = charname + " add set=\"<a>\" count=<p>;";//置き換え前の文章（聖遺物）
             string newtextart;//変数だけ作っておく
 
             if (is4pc == true)//聖遺物モード:4セットか2セット混合かで分岐
             {
                 //4セット混合
-                newtextart = charname + " add set=" + "\"" + artiname1 + "\"" + " count=4";//置き換え後の文章（聖遺物）
+                newtextart = charname + " add set=" + "\"" + artiname1 + "\"" + " count=4;";//置き換え後の文章（聖遺物）
             }
             else
             {
