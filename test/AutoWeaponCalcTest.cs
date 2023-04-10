@@ -1,55 +1,49 @@
 using CalcsheetGenerator;
 
 namespace CalcsheetGeneratorTest {
-    public class AutoWeaponCalcTest : IDisposable
+    public class AutoWeaponCalcTest
     {
-        //setup
-        public AutoWeaponCalcTest()
+        public class StartupAutoswitchTest : IDisposable
         {
-            //pass
-        }
+            //setup
+            public StartupAutoswitchTest()
+            {
+                var output = new StringWriter();
+                Console.SetOut(output);
+            }
 
-        // teardown
-        public void Dispose()
-        {
-            //pass
-        }
+            // teardown
+            public void Dispose()
+            {
+                //pass
+            }
 
-        // モード指定Autoでtrueを返すこと
-        [Fact]
-        public void nomal_Auto_Startup_autoswitch()
-        {
-            var output = new StringWriter();
-            Console.SetOut(output);
+            // モード指定Autoでtrueを返すこと
+            [Fact]
+            public void NomalAuto()
+            {
+                var input = new StringReader("a");
+                Console.SetIn(input);
+                Assert.True(AWC.Startup_autoswitch());
+            }
 
-            var input = new StringReader("a");
-            Console.SetIn(input);
-            Assert.Equal(true, AWC.Startup_autoswitch());
-        }
+            // モード指定Manualでfalseを返すこと
+            [Fact]
+            public void NomalManual()
+            {
+                var input = new StringReader("m");
+                Console.SetIn(input);
+                Assert.False(AWC.Startup_autoswitch());
+            }
 
-        // モード指定Manualでfalseを返すこと
-        [Fact]
-        public void nomal_Manual_Startup_autoswitch()
-        {
-            var output = new StringWriter();
-            Console.SetOut(output);
-
-            var input = new StringReader("m");
-            Console.SetIn(input);
-            Assert.Equal(false, AWC.Startup_autoswitch());
-        }
-
-        // モード指定なしでfalseを返すこと
-        [Fact]
-        public void nomal_Other_Startup_autoswitch()
-        {
-            var output = new StringWriter();
-            Console.SetOut(output);
-
-            var input = new StringReader("");
-            Console.SetIn(input);
-            Assert.Equal(false, AWC.Startup_autoswitch());
+            // モード指定なしでfalseを返すこと
+            [Fact]
+            public void NomalOtherInput()
+            {
+                var input = new StringReader("");
+                Console.SetIn(input);
+                Assert.False(AWC.Startup_autoswitch());
+            }
         }
     }
-
 }
