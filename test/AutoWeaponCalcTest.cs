@@ -45,5 +45,32 @@ namespace CalcsheetGeneratorTest {
                 Assert.False(AWC.Startup_autoswitch());
             }
         }
+
+        public class StartupAutomodeTest : IDisposable
+        {
+            //setup
+            public StartupAutomodeTest()
+            { 
+                // pass
+            }
+
+            // teardown
+            public void Dispose()
+            {
+                // pass
+            }
+            
+            [Fact]
+            public void NomalAutomode()
+            {
+                var output = new StringWriter();
+                Console.SetOut(output);
+                var input = new StringReader("Jean\nsword");
+                Console.SetIn(input);
+
+                string[] expectOutput = new String[] {"Jean", "sword", "0", "y"};
+                Assert.Equal(expectOutput, AWC.Startup_automode());
+            }
+        }
     }
 }
