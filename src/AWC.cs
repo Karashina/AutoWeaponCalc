@@ -90,12 +90,18 @@ namespace CalcsheetGenerator
             //nullが入ったら強制終了
             if (new string[] { charinput, weptypeinput }.Contains(null))
             {
-                Environment.Exit(0);
+                Exit(0);
             }
 
             //配列にして返す
             string[] auto_settingstoreturn = new string[4] { charinput, weptypeinput, "0", "y" };
             return auto_settingstoreturn;
+        }
+
+        // TODO 依存度注入するほどでもないのでmock可能な関数の作成
+        internal virtual void Exit(int exitCode) 
+        {
+            Environment.Exit(exitCode);
         }
 
         public static string[] Startup_manualmode()//manualモード
