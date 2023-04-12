@@ -87,8 +87,8 @@ namespace CalcsheetGenerator
             string? a2 = Console.ReadLine();
             string weptypeinput = a2;
 
-            //nullが入ったら強制終了
-            if (new string[] { charinput, weptypeinput }.Contains(null))
+            //キャラ名ないし武器種が強制終了
+            if (new string[] { charinput, weptypeinput }.Contains(""))
             {
                 _Environment.Current.Exit(0);
             }
