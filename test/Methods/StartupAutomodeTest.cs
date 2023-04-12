@@ -33,7 +33,7 @@ namespace Methods
         [InlineData("Jean", "")]
         [InlineData("", "sword")]
         [InlineData("", "")]
-        public void ErrorNullInput(string charactorName, string weaponType)
+        public void ErrorInputContainsEmpty(string charactorName, string weaponType)
         {
             var input = new StringReader($"{charactorName}\n{weaponType}\n");
             Console.SetIn(input);
