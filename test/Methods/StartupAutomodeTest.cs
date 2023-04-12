@@ -35,7 +35,7 @@ namespace Methods
         [InlineData("", "")]
         public void ErrorNullInput(string charactorName, string weaponType)
         {
-            var input = new StringReader($"{charactorName}\n{weaponType}");
+            var input = new StringReader($"{charactorName}\n{weaponType}\n");
             Console.SetIn(input);
 
             var enviromnent = new Mock<_Environment>();
