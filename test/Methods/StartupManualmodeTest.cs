@@ -5,6 +5,7 @@ using CalcsheetGenerator;
 
 namespace Methods
 {
+    [Collection("コンソールテストケース")]
     public class StartupManualmodeTest
     {
         [Fact(DisplayName="正常パターン")]
@@ -32,14 +33,7 @@ namespace Methods
         [InlineData("", "", "", "")]
         public void ErrorInputContainsEmpty(string charactorName, string weaponType, string refine, string modeswtich)
         {
-            var data = String.Join(Environment.NewLine, new[]
-            {
-                charactorName,
-                weaponType,
-                refine,
-                modeswtich
-            });
-            var input = new StringReader(data);
+            var input = new StringReader($"{charactorName}\n{weaponType}\n{refine}\n{modeswtich}\n");
             Console.SetIn(input);
 
             var enviromnent = new Mock<_Environment>();

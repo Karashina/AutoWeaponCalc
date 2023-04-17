@@ -1,28 +1,22 @@
 ﻿using System;
+using System.IO;
 
 using CalcsheetGenerator;
 
 namespace Methods
 {
-    public class StartupAutomodeTest : IDisposable
+    [Collection("コンソールテストケース")]
+    public class StartupAutomodeTest
     {
-        //setup
-        public StartupAutomodeTest()
-        {
-            var output = new StringWriter();
-            Console.SetOut(output);
-        }
-
-        // teardown
-        public void Dispose()
-        {
-            //pass
-        }
-
         [Fact(DisplayName="正常パターン")]
         public void Nomal()
         {
-            var input = new StringReader("Jean\nsword");
+            var data = String.Join(Environment.NewLine, new[]
+            {
+                "Jean",
+                "sword"
+            });
+            var input = new StringReader(data);
             Console.SetIn(input);
 
             string[] expectOutput = new String[] {"Jean", "sword", "0", "y"};
@@ -30,8 +24,8 @@ namespace Methods
         }
 
         [Theory(DisplayName="未入力が含まれるパターンで強制終了していること")]
-        [InlineData("Jean", "")]
         [InlineData("", "sword")]
+        [InlineData("Jean", "")]
         [InlineData("", "")]
         public void ErrorInputContainsEmpty(string charactorName, string weaponType)
         {

@@ -1,24 +1,13 @@
 ﻿using System;
+using System.IO;
 
 using CalcsheetGenerator;
 
 namespace Methods
 {
-    public class StartupAutoswitchTest : IDisposable
+    [Collection("コンソールテストケース")]
+    public class StartupAutoswitchTest
     {
-        //setup
-        public StartupAutoswitchTest()
-        {
-            var output = new StringWriter();
-            Console.SetOut(output);
-        }
-
-        // teardown
-        public void Dispose()
-        {
-            //pass
-        }
-
         [Fact(DisplayName="モード指定Autoでtrueを返すこと")]
         public void NomalAuto()
         {
