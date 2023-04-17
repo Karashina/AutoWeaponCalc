@@ -121,9 +121,9 @@ namespace CalcsheetGenerator
             string artifactmode = m4;
 
             //nullが入ったら強制終了
-            if (new string[] { charinput , weptypeinput , refineinput , artifactmode }.Contains(null))
+            if (new string[] { charinput , weptypeinput , refineinput , artifactmode }.Contains(""))
             {
-                Environment.Exit(0);
+                _Environment.Current.Exit(0);
             }
 
             //配列にして返す
