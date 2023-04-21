@@ -144,6 +144,12 @@ namespace CalcsheetGenerator
                             continue;
                         }
 
+                        //聖遺物2スロット目を使わない場合出力時に"〇〇4pc"となるようにする
+                        if (Column[2] == "0")
+                        {
+                            Column[2] = "4pc";
+                        }
+
                         //tableにデータを追加する
                         ArtifactList.Add(new ArtifactData(Column[0], Column[1], Column[2]));
                     }
@@ -330,7 +336,7 @@ namespace CalcsheetGenerator
 
             // gcsimに渡す引数
             string txtname = "../resource/input/config.txt";
-            Gcsim.StartInfo.Arguments = "-c=" + txtname + " -substatOptim=true -out=optim.txt";
+            Gcsim.StartInfo.Arguments = "-c=" + txtname + " -substatOptim=true -out=OptimizedConfig.txt";
 
             // プロセス起動1回目
             Gcsim.Start();
