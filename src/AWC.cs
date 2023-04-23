@@ -129,24 +129,24 @@ namespace CalcsheetGenerator
             string CsvPathWeapon = "../resource/weaponData/" + WeaponType + ".csv";
 
             //先頭行を読み取りするかどうか
-            bool isFirstLineSkip = true;
+            bool isCsvHeader = true;
 
             //取得したデータを保存するリスト
             List<WeaponData> WeaponList = new List<WeaponData>();
 
             //CSV読み込み部分
-            using (StreamReader CsvReader = new StreamReader(CsvPathWeapon))
+            using (StreamReader WeaponCsvReader = new StreamReader(CsvPathWeapon))
             {
-                while (0 <= CsvReader.Peek())
+                while (0 <= WeaponCsvReader.Peek())
                 {
                     //カンマ区切りで分割して配列で格納する
-                    string[] Column = CsvReader.ReadLine()?.Split(',');
+                    string[] Column = WeaponCsvReader.ReadLine()?.Split(',');
                     if (Column is null) continue;
 
                     //先頭行は項目名なのでスキップする
-                    if (isFirstLineSkip)
+                    if (isCsvHeader)
                     {
-                        isFirstLineSkip = false;
+                        isCsvHeader = false;
                         continue;
                     }
 
@@ -197,24 +197,24 @@ namespace CalcsheetGenerator
             string CsvPathArtifact = "../resource/input/artifacts.csv";
 
             //先頭行を読み取りするかどうか
-            bool isFirstLineSkip = true;
+            bool isCsvHeader = true;
 
             //取得したデータを保存するリスト
             List<ArtifactData> ArtifactList = new List<ArtifactData>();
 
             //ファイルを開く
-            using (StreamReader CsvReader = new StreamReader(CsvPathArtifact))
+            using (StreamReader ArtifactCsvReader = new StreamReader(CsvPathArtifact))
             {
-                while (0 <= CsvReader.Peek())
+                while (0 <= ArtifactCsvReader.Peek())
                 {
                     //カンマ区切りで分割して配列で格納する
-                    string[] Column = CsvReader.ReadLine()?.Split(',');
+                    string[] Column = ArtifactCsvReader.ReadLine()?.Split(',');
                     if (Column is null) continue;
 
-                    //先頭行は項目名なのでスキップする
-                    if (isFirstLineSkip)
+                    //先頭行スキップ
+                    if (isCsvHeader)
                     {
-                        isFirstLineSkip = false;
+                        isCsvHeader = false;
                         continue;
                     }
 
