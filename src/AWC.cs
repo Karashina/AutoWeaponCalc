@@ -4,60 +4,65 @@ using System.Text;
 
 namespace CalcsheetGenerator
 {
-    class AWC
+    class Primary
     {
-        //データを格納するレコード
-        record WeaponData(string NameJapanese, string NameInternal, string Rarity);
-        record ArtifactData(string PiecesCheck, string Name1, string Name2);
-
         public static void Main()
         {
-            //起動時設定
-            bool isAutoModeEnabled = StartupAutoswitch();
-
-            //設定取得
-            string[] InitialSetting = new string[4];
-            InitialSetting[0] = "";
-
-            if (isAutoModeEnabled)
+            try
             {
-                InitialSetting = StartupAutomode();
+                //起動時設定
+                bool isAutoModeEnabled = Preparation.StartupAutoswitch();
+
+                //設定取得
+                string[] InitialSetting = new string[4];
+                InitialSetting[0] = "";
+
+                if (isAutoModeEnabled)
+                {
+                    InitialSetting = Preparation.StartupAutomode();
+                }
+                else
+                {
+                    InitialSetting = Preparation.StartupManualmode();
+                }
+
+                //nullが入ったら強制終了
+                if (InitialSetting.Contains(null))
+                {
+                    throw new FormatException("Invalid Input at Automode Startup!");
+                }
+
+                //最後に出力する表を作成
+                DataSet OutputDataSet = new DataSet();
+                DataTable OutputDataTable = new DataTable("Table");
+
+                //カラム名の追加
+                OutputDataTable.Columns.Add("武器名");
+                OutputDataTable.Columns.Add("精錬R");
+                OutputDataTable.Columns.Add("DPS");
+
+                //DataSetにDataTableを追加
+                OutputDataSet.Tables.Add(OutputDataTable);
+
+                //モードごとに処理
+                if (InitialSetting[3] == "y")//setting[3]は聖遺物モード切替
+                {
+                    Calculation.DpsCalcWithArtifactMode(OutputDataTable, InitialSetting[0], InitialSetting[1], InitialSetting[2]);
+                }
+                else
+                {
+                    Calculation.MakeWeaponDpsList(false, OutputDataTable, InitialSetting[0], InitialSetting[1], InitialSetting[2], true, "", "");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                InitialSetting = StartupManualmode();
+                Console.WriteLine(ex.Message);
+                Environment.Exit(1);
             }
-
-            //nullが入ったら強制終了
-            if (InitialSetting.Contains(null))
-            {
-                throw new FormatException("Invalid Input at Automode Startup!");
-            }
-
-            //最後に出力する表を作成
-            DataSet OutputDataSet = new DataSet();
-            DataTable OutputDataTable = new DataTable("Table");
-
-            //カラム名の追加
-            OutputDataTable.Columns.Add("武器名");
-            OutputDataTable.Columns.Add("精錬R");
-            OutputDataTable.Columns.Add("DPS");
-
-            //DataSetにDataTableを追加
-            OutputDataSet.Tables.Add(OutputDataTable);
-
-            //モードごとに処理
-            if (InitialSetting[3] == "y")//setting[3]は聖遺物モード切替
-            {
-                DpsCalcWithArtifactMode(OutputDataTable, InitialSetting[0], InitialSetting[1], InitialSetting[2]);
-            }
-            else
-            {
-                MakeWeaponDpsList(false, OutputDataTable, InitialSetting[0], InitialSetting[1], InitialSetting[2], true, "", "");
-            }
-
         }
-
+    }
+    class Preparation
+    {
         public static bool StartupAutoswitch()
         {
             //モード指定(auto / manual)
@@ -74,7 +79,6 @@ namespace CalcsheetGenerator
                     throw new FormatException("Invalid Input at Mode Selection!");
             }
         }
-
         public static string[] StartupAutomode() //autoモード
         {
             //キャラ名指定
@@ -90,7 +94,6 @@ namespace CalcsheetGenerator
 
             return InitialSetting;
         }
-
         public static string[] StartupManualmode()//manualモード
         {
             //キャラ名指定
@@ -114,103 +117,43 @@ namespace CalcsheetGenerator
 
             return InitialSetting;
         }
-
-        public static void DpsCalcWithArtifactMode(DataTable OutputDataTable, string CharacterName, string WeaponType, string WeaponRefinerank)//CSV読み込みと計算
+    }
+    class Calculation
+    {
+        //データを格納するレコード
+        record WeaponData(string NameJapanese, string NameInternal, string Rarity);
+        record ArtifactData(string PiecesCheck, string Name1, string Name2);
+        public static void MakeWeaponDpsList(bool isAritifactModeEnabled, DataTable OutputDataTable, string CharacterName, string WeaponType, string WeaponRefinerank, bool isArtifact4Piece, string ArtifactName1, string ArtifactName2) //CSV読み込みと計算（武器）
         {
             //ファイル名
-            string CsvPathArtifact = "../resource/input/artifacts.csv";
+            string CsvPathWeapon = "../resource/weaponData/" + WeaponType + ".csv";
 
             //先頭行を読み取りするかどうか
             bool isFirstLineSkip = true;
 
             //取得したデータを保存するリスト
-            List<ArtifactData> ArtifactList = new List<ArtifactData>();
-
-            try
-            {
-                //ファイルを開く
-                using (StreamReader CsvReader = new StreamReader(CsvPathArtifact))
-                {
-                    while (0 <= CsvReader.Peek())
-                    {
-                        //カンマ区切りで分割して配列で格納する
-                        string[] Column = CsvReader.ReadLine()?.Split(',');
-                        if (Column is null) continue;
-
-                        //先頭行は項目名なのでスキップする
-                        if (isFirstLineSkip)
-                        {
-                            isFirstLineSkip = false;
-                            continue;
-                        }
-
-                        //聖遺物2スロット目を使わない場合出力時に"〇〇4pc"となるようにする
-                        if (Column[2] == "0")
-                        {
-                            Column[2] = "4pc";
-                        }
-
-                        //tableにデータを追加する
-                        ArtifactList.Add(new ArtifactData(Column[0], Column[1], Column[2]));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-
-            foreach (ArtifactData Artifact in ArtifactList)
-            {
-                bool isArtifact4Piece = Artifact.PiecesCheck == "1";
-
-                Console.WriteLine("Initialize calculation for artifact " + Artifact.Name1 + Artifact.Name2); //開始メッセージ
-                MakeWeaponDpsList(true, OutputDataTable, CharacterName, WeaponType, WeaponRefinerank, isArtifact4Piece, Artifact.Name1, Artifact.Name2);
-                OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
-                Console.WriteLine("Calculation completed for artifact " + Artifact.Name1 + Artifact.Name2); //終了メッセージ
-            }
-        }
-
-        public static void MakeWeaponDpsList(bool isAritifactModeEnabled, DataTable OutputDataTable, string CharacterName, string WeaponType, string WeaponRefinerank, bool isArtifact4Piece, string ArtifactName1, string ArtifactName2) //CSV読み込みと計算（武器）
-        {
-            //ファイル名
-            var CsvPathWeapon = "../resource/weaponData/" + WeaponType + ".csv";
-
-            //先頭行を読み取りするかどうか
-            var isFirstLineSkip = true;
-
-            //取得したデータを保存するリスト
             List<WeaponData> WeaponList = new List<WeaponData>();
 
-            try//CSV読み込み部分
+            //CSV読み込み部分
+            using (StreamReader CsvReader = new StreamReader(CsvPathWeapon))
             {
-                //ファイルを開く
-                using (StreamReader CsvReader = new StreamReader(CsvPathWeapon))
+                while (0 <= CsvReader.Peek())
                 {
-                    while (0 <= CsvReader.Peek())
+                    //カンマ区切りで分割して配列で格納する
+                    string[] Column = CsvReader.ReadLine()?.Split(',');
+                    if (Column is null) continue;
+
+                    //先頭行は項目名なのでスキップする
+                    if (isFirstLineSkip)
                     {
-                        //カンマ区切りで分割して配列で格納する
-                        var Column = CsvReader.ReadLine()?.Split(',');
-                        if (Column is null) continue;
-
-                        //先頭行は項目名なのでスキップする
-                        if (isFirstLineSkip)
-                        {
-                            isFirstLineSkip = false;
-                            continue;
-                        }
-
-                        //リストにデータを追加する
-                        WeaponList.Add(new WeaponData(Column[0], Column[1], Column[2]));
+                        isFirstLineSkip = false;
+                        continue;
                     }
+
+                    //リストにデータを追加する
+                    WeaponList.Add(new WeaponData(Column[0], Column[1], Column[2]));
                 }
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
             foreach (WeaponData Weapon in WeaponList)
             {
                 bool isAutoRefineModeEnabled = false;//自動精錬ランク設定初期化
@@ -230,14 +173,14 @@ namespace CalcsheetGenerator
                     }
                 }
 
-                EditTxtConfig(isAritifactModeEnabled, Weapon.NameInternal, CharacterName, WeaponRefinerank, false, isArtifact4Piece, ArtifactName1, ArtifactName2); //configファイル編集
+                FileIO.EditTxtConfig(isAritifactModeEnabled, Weapon.NameInternal, CharacterName, WeaponRefinerank, false, isArtifact4Piece, ArtifactName1, ArtifactName2); //configファイル編集
 
-                float WeaponDps = GetWeaponDps(CharacterName); //gcsim起動
+                float WeaponDps = Gcsim.GetWeaponDps(CharacterName); //gcsim起動
                 Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
 
                 OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefinerank, WeaponDps); //tableに結果を格納
 
-                EditTxtConfig(isAritifactModeEnabled, Weapon.NameInternal, CharacterName, WeaponRefinerank, true, isArtifact4Piece, ArtifactName1, ArtifactName2); //configファイルを元に戻す
+                FileIO.EditTxtConfig(isAritifactModeEnabled, Weapon.NameInternal, CharacterName, WeaponRefinerank, true, isArtifact4Piece, ArtifactName1, ArtifactName2); //configファイルを元に戻す
 
                 if (isAutoRefineModeEnabled == true)//自動精錬ランク設定を次の武器に引き継ぐ
                 {
@@ -245,10 +188,59 @@ namespace CalcsheetGenerator
                 }
             }
 
-            DataTableToCsv(OutputDataTable, "table_" + ArtifactName1 + ArtifactName2 + ".csv", true);
+            FileIO.DataTableToCsv(OutputDataTable, "table_" + ArtifactName1 + ArtifactName2 + ".csv", true);
             WeaponList.Clear();//念のためlinesもクリア
         }
+        public static void DpsCalcWithArtifactMode(DataTable OutputDataTable, string CharacterName, string WeaponType, string WeaponRefinerank)//CSV読み込みと計算
+        {
+            //ファイル名
+            string CsvPathArtifact = "../resource/input/artifacts.csv";
 
+            //先頭行を読み取りするかどうか
+            bool isFirstLineSkip = true;
+
+            //取得したデータを保存するリスト
+            List<ArtifactData> ArtifactList = new List<ArtifactData>();
+
+            //ファイルを開く
+            using (StreamReader CsvReader = new StreamReader(CsvPathArtifact))
+            {
+                while (0 <= CsvReader.Peek())
+                {
+                    //カンマ区切りで分割して配列で格納する
+                    string[] Column = CsvReader.ReadLine()?.Split(',');
+                    if (Column is null) continue;
+
+                    //先頭行は項目名なのでスキップする
+                    if (isFirstLineSkip)
+                    {
+                        isFirstLineSkip = false;
+                        continue;
+                    }
+
+                    //聖遺物2スロット目を使わない場合出力時に"〇〇4pc"となるようにする
+                    if (Column[2] == "0")
+                    {
+                        Column[2] = "4pc";
+                    }
+
+                    //tableにデータを追加する
+                    ArtifactList.Add(new ArtifactData(Column[0], Column[1], Column[2]));
+                }
+            }
+            foreach (ArtifactData Artifact in ArtifactList)
+            {
+                bool isArtifact4Piece = Artifact.PiecesCheck == "1";
+
+                Console.WriteLine("Initialize calculation for artifact " + Artifact.Name1 + Artifact.Name2); //開始メッセージ
+                MakeWeaponDpsList(true, OutputDataTable, CharacterName, WeaponType, WeaponRefinerank, isArtifact4Piece, Artifact.Name1, Artifact.Name2);
+                OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
+                Console.WriteLine("Calculation completed for artifact " + Artifact.Name1 + Artifact.Name2); //終了メッセージ
+            }
+        }
+    }
+    class FileIO
+    {
         public static void TxtReplace(string filename, string oldtext, string newtext) //txtファイルの内容を置き換える
         {
             StringBuilder TxtBuilder = new StringBuilder();
@@ -266,7 +258,6 @@ namespace CalcsheetGenerator
             }
             File.WriteAllText(filename, TxtBuilder.ToString());
         }
-
         public static void EditTxtConfig(bool isArtifactModeEnabled, string WeaponName, string CharacterName, string WeaponRefineRank, bool isCleanupModeEnabled, bool isArtifact4Piece, string ArtifactName1, string ArtifactName2) //txtファイルに書き込む内容を指定する
         {
             string TxtPathSimconfig = "../resource/input/config.txt";
@@ -317,7 +308,39 @@ namespace CalcsheetGenerator
                 Debug.WriteLine("Replaced");
             }
         }
+        static public void DataTableToCsv(DataTable OutputDataTable, string CsvFileName, bool CsvHeader)
+        {
+            string Separator = string.Empty;
+            List<int> filterIndex = new List<int>();
 
+            using (StreamWriter CsvWriter = new StreamWriter(CsvFileName, false, Encoding.UTF8))
+            {
+                //ヘッダーを出力
+                if (CsvHeader)
+                {
+                    foreach (DataColumn CsvColumn in OutputDataTable.Columns)
+                    {
+                        CsvWriter.Write(Separator + "\"" + CsvColumn.ToString().Replace("\"", "\"\"") + "\"");
+                        Separator = ",";
+                    }
+                    CsvWriter.WriteLine();
+                }
+                //内容を出力
+                foreach (DataRow CsvRow in OutputDataTable.Rows)
+                {
+                    Separator = string.Empty;
+                    for (int i = 0; i < OutputDataTable.Columns.Count; i++)
+                    {
+                        CsvWriter.Write(Separator + "\"" + CsvRow[i].ToString().Replace("\"", "\"\"") + "\"");
+                        Separator = ",";
+                    }
+                    CsvWriter.WriteLine();
+                }
+            }
+        }
+    }
+    class Gcsim
+    {
         public static float GetWeaponDps(string CharacterName)//gcsimで計算
         {
             // Processクラスのオブジェクトを作成
@@ -384,73 +407,5 @@ namespace CalcsheetGenerator
                 return float.Parse(WeaponDps);
             }
         }
-
-        static public void DataTableToCsv(DataTable OutputDataTable, string CsvFileName, bool CsvHeader)
-        {
-            string Separator = string.Empty;
-            List<int> filterIndex = new List<int>();
-
-            using (StreamWriter CsvWriter = new StreamWriter(CsvFileName, false, Encoding.UTF8))
-            {
-                //DataColumnの型から値を出力するかどうか判別
-                for (int i = 0; i < OutputDataTable.Columns.Count; i++)
-                {
-                    switch (OutputDataTable.Columns[i].DataType.ToString())
-                    {
-                        case "System.Boolean":
-                        case "System.Byte":
-                        case "System.Char":
-                        case "System.DateTime":
-                        case "System.Decimal":
-                        case "System.Double":
-                        case "System.Int16":
-                        case "System.Int32":
-                        case "System.Int64":
-                        case "System.SByte":
-                        case "System.Single":
-                        case "System.String":
-                        case "System.TimeSpan":
-                        case "System.UInt16":
-                        case "System.UInt32":
-                        case "System.UInt64":
-                            break;
-
-                        default:
-                            filterIndex.Add(i);
-                            break;
-                    }
-                }
-                //ヘッダーを出力
-                if (CsvHeader)
-                {
-                    foreach (DataColumn CsvColumn in OutputDataTable.Columns)
-                    {
-                        CsvWriter.Write(Separator + "\"" + CsvColumn.ToString().Replace("\"", "\"\"") + "\"");
-                        Separator = ",";
-                    }
-                    CsvWriter.WriteLine();
-                }
-                //内容を出力
-                foreach (DataRow CsvRow in OutputDataTable.Rows)
-                {
-                    Separator = string.Empty;
-                    for (int i = 0; i < OutputDataTable.Columns.Count; i++)
-                    {
-                        if (filterIndex.Contains(i))
-                        {
-                            CsvWriter.Write(Separator + "\"[データ]\"");
-                            Separator = ",";
-                        }
-                        else
-                        {
-                            CsvWriter.Write(Separator + "\"" + CsvRow[i].ToString().Replace("\"", "\"\"") + "\"");
-                            Separator = ",";
-                        }
-                    }
-                    CsvWriter.WriteLine();
-                }
-            }
-        }
-
     }
 }
