@@ -2,6 +2,8 @@
 using System.Diagnostics;
 using System.Text;
 
+using Common;
+
 namespace CalcsheetGenerator
 {
     class Primary
@@ -10,26 +12,18 @@ namespace CalcsheetGenerator
         {
             try
             {
+                Preparation preparation = new Preparation();
+
                 //起動時設定
-                bool isAutoModeEnabled = Preparation.StartupAutoswitch();
+                preparation.SelectMode();
 
                 //設定取得
-                string[] InitialSetting = new string[4];
-                InitialSetting[0] = "";
+                UserInput InitialSetting = preparation.Startup();
 
-                if (isAutoModeEnabled)
+                //nullまたは空文字が入ったら強制終了
+                if (InitialSetting.CheckNullAndEmpty())
                 {
-                    InitialSetting = Preparation.StartupAutomode();
-                }
-                else
-                {
-                    InitialSetting = Preparation.StartupManualmode();
-                }
-
-                //nullが入ったら強制終了
-                if (InitialSetting.Contains(null))
-                {
-                    throw new FormatException("Invalid Input at Automode Startup!");
+                    throw new FormatException(Message.Error.StartupAutomode);
                 }
 
                 //最後に出力する表を作成
@@ -45,13 +39,13 @@ namespace CalcsheetGenerator
                 OutputDataSet.Tables.Add(OutputDataTable);
 
                 //モードごとに処理
-                if (InitialSetting[3] == "y")//setting[3]は聖遺物モード切替
+                if (InitialSetting.ArtifactModeSel == "y")
                 {
-                    Calculation.DpsCalcWithArtifactMode(OutputDataTable, InitialSetting[0], InitialSetting[1], InitialSetting[2]);
+                    Calculation.DpsCalcWithArtifactMode(OutputDataTable, InitialSetting);
                 }
                 else
                 {
-                    Calculation.MakeWeaponDpsList(false, OutputDataTable, InitialSetting[0], InitialSetting[1], InitialSetting[2], true, "", "");
+                    Calculation.MakeWeaponDpsList(false, OutputDataTable, InitialSetting, true, "", "");
                 }
             }
             catch (Exception ex)
@@ -63,70 +57,71 @@ namespace CalcsheetGenerator
     }
     class Preparation
     {
-        public static bool StartupAutoswitch()
+        Mode mode = Mode.none;
+        public void SelectMode()
         {
             //モード指定(auto / manual)
-            Console.WriteLine("mode selection(auto / manual) [a|m] :");
+            Console.WriteLine(Message.Notice.SelectMode);
             string? UserInputModeSelection = Console.ReadLine();
 
             switch (UserInputModeSelection)
             {
                 case "a":
-                    return true;
+                    this.mode = Mode.auto;
+                    break;
                 case "m":
-                    return false;
+                    this.mode = Mode.manual;
+                    break;
                 default:
-                    throw new FormatException("Invalid Input at Mode Selection!");
+                    throw new FormatException(Message.Error.SelectMode);
             }
         }
-        public static string[] StartupAutomode() //autoモード
+
+        public bool IsAutoMode()
         {
-            //キャラ名指定
-            Console.WriteLine("Type the name of the character to calculate:");
-            string? UserInputCharacterName = Console.ReadLine();
-
-            //武器種指定
-            Console.WriteLine("Type the weapon type of the character to calculate [sword|claymore|bow|catalyst|polearm] :");
-            string? UserInputWeaponType = Console.ReadLine();
-
-            //配列にして返す
-            string[] InitialSetting = new string[4] { UserInputCharacterName, UserInputWeaponType, "0", "y" };
-
-            return InitialSetting;
+            return Mode.auto.Equals(this.mode);
         }
-        public static string[] StartupManualmode()//manualモード
+
+        public UserInput Startup()//manualモード
         {
+            if (Mode.none.Equals(this.mode)){
+                // TODO throw
+            }
+            string? WeaponRefinerank = "0";
+            string? ArtifactModeSel = "y";
+
             //キャラ名指定
-            Console.WriteLine("Type the name of the character to calculate:");
-            string? UserInputCharacterName = Console.ReadLine();
+            Console.WriteLine(Message.Notice.SelectCharctor);
+            string? CharacterName = Console.ReadLine();
 
             //武器種指定
-            Console.WriteLine("Type the weapon type of the character to calculate [sword|claymore|bow|catalyst|polearm] :");
-            string? UserinputWeaponType = Console.ReadLine();
+            Console.WriteLine(Message.Notice.SelectWeapon);
+            string? WeaponType = Console.ReadLine();
 
-            //精錬ランク指定
-            Console.WriteLine("Type the refinement rank of the weapon to calculate [0=auto][1-5] :");
-            string? UserinputWeaponRefinerank = Console.ReadLine();
+            if (Mode.manual.Equals(this.mode))
+            {
+                //精錬ランク指定
+                Console.WriteLine(Message.Notice.SelectRefinement);
+                WeaponRefinerank = Console.ReadLine();
 
-            //聖遺物モード切替
-            Console.WriteLine("Do you want to use artifact mode? [y|n]:");
-            string? UserinputArtifactModeSel = Console.ReadLine();
+                //聖遺物モード切替
+                Console.WriteLine(Message.Notice.SelectArtifactOptimization);
+                ArtifactModeSel = Console.ReadLine();
+            }
 
-            //配列にして返す
-            string[] InitialSetting = new string[4] { UserInputCharacterName, UserinputWeaponType, UserinputWeaponRefinerank, UserinputArtifactModeSel };
-
-            return InitialSetting;
+            return new UserInput(CharacterName, WeaponType, WeaponRefinerank, ArtifactModeSel);
         }
     }
+
     class Calculation
     {
         //データを格納するレコード
         record WeaponData(string NameJapanese, string NameInternal, string Rarity);
         record ArtifactData(string PiecesCheck, string Name1, string Name2);
-        public static void MakeWeaponDpsList(bool isAritifactModeEnabled, DataTable OutputDataTable, string CharacterName, string WeaponType, string WeaponRefinerank, bool isArtifact4Piece, string ArtifactName1, string ArtifactName2) //CSV読み込みと計算（武器）
+        public static void MakeWeaponDpsList(bool isAritifactModeEnabled, DataTable OutputDataTable, UserInput InitialSetting, bool isArtifact4Piece, string ArtifactName1, string ArtifactName2) //CSV読み込みと計算（武器）
         {
             //ファイル名
-            string CsvPathWeapon = "../resource/weaponData/" + WeaponType + ".csv";
+            string CsvPathWeapon = "../resource/weaponData/" + InitialSetting.WeaponType + ".csv";
 
             //先頭行を読み取りするかどうか
             bool isCsvHeader = true;
@@ -159,39 +154,39 @@ namespace CalcsheetGenerator
                 bool isAutoRefineModeEnabled = false;//自動精錬ランク設定初期化
 
                 //rarityに応じた自動精錬ランク設定
-                if (WeaponRefinerank == "0")
+                if (InitialSetting.WeaponRefinerank == "0")
                 {
                     isAutoRefineModeEnabled = true;
 
                     if (Weapon.Rarity == "1")
                     {
-                        WeaponRefinerank = "1";
+                        InitialSetting.WeaponRefinerank = "1";
                     }
                     else
                     {
-                        WeaponRefinerank = "5";
+                        InitialSetting.WeaponRefinerank = "5";
                     }
                 }
 
-                FileIO.EditTxtConfig(isAritifactModeEnabled, Weapon.NameInternal, CharacterName, WeaponRefinerank, false, isArtifact4Piece, ArtifactName1, ArtifactName2); //configファイル編集
+                FileIO.EditTxtConfig(isAritifactModeEnabled, Weapon.NameInternal, InitialSetting.CharacterName, InitialSetting.WeaponRefinerank, false, isArtifact4Piece, ArtifactName1, ArtifactName2); //configファイル編集
 
-                float WeaponDps = Gcsim.GetWeaponDps(CharacterName); //gcsim起動
+                float WeaponDps = Gcsim.GetWeaponDps(InitialSetting.CharacterName); //gcsim起動
                 Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
 
-                OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefinerank, WeaponDps); //tableに結果を格納
+                OutputDataTable.Rows.Add(Weapon.NameJapanese, InitialSetting.WeaponRefinerank, WeaponDps); //tableに結果を格納
 
-                FileIO.EditTxtConfig(isAritifactModeEnabled, Weapon.NameInternal, CharacterName, WeaponRefinerank, true, isArtifact4Piece, ArtifactName1, ArtifactName2); //configファイルを元に戻す
+                FileIO.EditTxtConfig(isAritifactModeEnabled, Weapon.NameInternal, InitialSetting.CharacterName, InitialSetting.WeaponRefinerank, true, isArtifact4Piece, ArtifactName1, ArtifactName2); //configファイルを元に戻す
 
                 if (isAutoRefineModeEnabled == true)//自動精錬ランク設定を次の武器に引き継ぐ
                 {
-                    WeaponRefinerank = "0";
+                    InitialSetting.WeaponRefinerank = "0";
                 }
             }
 
             FileIO.DataTableToCsv(OutputDataTable, "table_" + ArtifactName1 + ArtifactName2 + ".csv", true);
             WeaponList.Clear();//念のためlinesもクリア
         }
-        public static void DpsCalcWithArtifactMode(DataTable OutputDataTable, string CharacterName, string WeaponType, string WeaponRefinerank)//CSV読み込みと計算
+        public static void DpsCalcWithArtifactMode(DataTable OutputDataTable, UserInput InitialSetting)//CSV読み込みと計算
         {
             //ファイル名
             string CsvPathArtifact = "../resource/input/artifacts.csv";
@@ -232,10 +227,10 @@ namespace CalcsheetGenerator
             {
                 bool isArtifact4Piece = Artifact.PiecesCheck == "1";
 
-                Console.WriteLine("Initialize calculation for artifact " + Artifact.Name1 + Artifact.Name2); //開始メッセージ
-                MakeWeaponDpsList(true, OutputDataTable, CharacterName, WeaponType, WeaponRefinerank, isArtifact4Piece, Artifact.Name1, Artifact.Name2);
+                Console.WriteLine($"{Message.Notice.ProcessStart}{Artifact.Name1} {Artifact.Name2}"); //開始メッセージ
+                MakeWeaponDpsList(true, OutputDataTable, InitialSetting, isArtifact4Piece, Artifact.Name1, Artifact.Name2);
                 OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
-                Console.WriteLine("Calculation completed for artifact " + Artifact.Name1 + Artifact.Name2); //終了メッセージ
+                Console.WriteLine($"{Message.Notice.ProcessEnd}{Artifact.Name1} {Artifact.Name2}"); //終了メッセージ
             }
         }
     }
