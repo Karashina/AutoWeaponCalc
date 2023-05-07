@@ -4,14 +4,14 @@ namespace Common
     {
         public string? CharacterName { get; } 
         public string? WeaponType { get; } 
-        public string? WeaponRefinerank { get; set; } 
+        public string? WeaponRefineRank { get; set; } 
         public string? ArtifactModeSel { get; set; } 
 
-        public UserInput(string? CharacterName, string? WeaponType, string? WeaponRefinerank, string? ArtifactModeSel)
+        public UserInput(string? CharacterName, string? WeaponType, string? WeaponRefineRank, string? ArtifactModeSel)
         {
             this.CharacterName = CharacterName;
             this.WeaponType = WeaponType;
-            this.WeaponRefinerank = WeaponRefinerank;
+            this.WeaponRefineRank = WeaponRefineRank;
             this.ArtifactModeSel = ArtifactModeSel;
         }
 
@@ -19,7 +19,7 @@ namespace Common
         {
             if (string.IsNullOrEmpty(this.CharacterName) ||
                 string.IsNullOrEmpty(this.WeaponType) ||
-                string.IsNullOrEmpty(this.WeaponRefinerank) ||
+                string.IsNullOrEmpty(this.WeaponRefineRank) ||
                 string.IsNullOrEmpty(this.ArtifactModeSel))
             {
                 return false;

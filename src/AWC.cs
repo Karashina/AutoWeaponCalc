@@ -36,6 +36,8 @@ namespace CalcsheetGenerator
                 OutputDataTable.Columns.Add("DPS");
 
                 SettingFileReader _SettingFileReader = new SettingFileReader(OutputDataTable, InitialSetting);
+                SettingFileWriter _SettingFileWriter = new SettingFileWriter();
+
                 //モードごとに処理
                 bool isArtifactModeEnabled = InitialSetting.ArtifactModeSel == "y";
                 
@@ -54,36 +56,66 @@ namespace CalcsheetGenerator
                     {
                         bool isAutoRefineModeEnabled = false;//自動精錬ランク設定初期化
 
-                        string WeaponRefinerank = InitialSetting.WeaponRefinerank;
+                        string WeaponRefineRank = InitialSetting.WeaponRefineRank;
                         //rarityに応じた自動精錬ランク設定
-                        if (InitialSetting.WeaponRefinerank == "0")
+                        if (InitialSetting.WeaponRefineRank == "0")
                         {
                             if (Weapon.Rarity == "1")
                             {
-                                WeaponRefinerank = "1";
+                                WeaponRefineRank = "1";
                             }
                             else
                             {
-                                WeaponRefinerank = "5";
+                                WeaponRefineRank = "5";
                             }
                         }
 
-                        FileIO.EditTxtConfig(isArtifactModeEnabled, Weapon.NameInternal, InitialSetting.CharacterName, WeaponRefinerank, false, Artifact); //configファイル編集
+                        string OldTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"<w>\" refine=<r>";
+                        string NewTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"{Weapon.NameInternal}\" refine={WeaponRefineRank}";
+
+                        string OldTextArtifact = $"{InitialSetting.CharacterName} add set=\"<a>\" count=<p>;";//置き換え前の文章（聖遺物）
+                        string NewTextArtifact = ArtifactPieces._4pc.Equals(Artifact.PiecesCheck) ? //置き換え後の文章（聖遺物）
+                            $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=4;" : //4セット混合
+                            $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=2; {Environment.NewLine}{InitialSetting.CharacterName} add set=\"{Artifact.Name2}\" count=2;"; //2セット混合
+
+                        if (isArtifactModeEnabled)//聖遺物モード
+                        {
+                            _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
+                        }
+
+                        //置き換えモード( //configファイル編集)
+                        _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, OldTextWeapon, NewTextWeapon);
+
+                        if (isArtifactModeEnabled)
+                        {
+                            _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
+                        }
+
+                        Debug.WriteLine("Replaced");
 
                         float WeaponDps = Gcsim.GetWeaponDps(InitialSetting.CharacterName); //gcsim起動
+
                         Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
 
-                        OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefinerank, WeaponDps); //tableに結果を格納
+                        OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefineRank, WeaponDps); //tableに結果を格納
 
-                        FileIO.EditTxtConfig(isArtifactModeEnabled, Weapon.NameInternal, InitialSetting.CharacterName, WeaponRefinerank, true, Artifact); //configファイルを元に戻す
+                        //クリーンアップモード(configファイルを元に戻す)
+                        _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, NewTextWeapon, OldTextWeapon);
+
+                        if (isArtifactModeEnabled)
+                        {
+                            _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, NewTextArtifact, OldTextArtifact);
+                        }
+
+                        Debug.WriteLine("Cleaned");
 
                         if (isAutoRefineModeEnabled)//自動精錬ランク設定を次の武器に引き継ぐ
                         {
-                            InitialSetting.WeaponRefinerank = "0";
+                            InitialSetting.WeaponRefineRank = "0";
                         }
                     }
 
-                    FileIO.DataTableToCsv(OutputDataTable, $"table_{Artifact.Name1}_{Artifact.Name2}.csv", true);
+                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, $"table_{Artifact.Name1}_{Artifact.Name2}.csv");
 
                     OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
                     if (isArtifactModeEnabled) {
@@ -230,15 +262,15 @@ namespace CalcsheetGenerator
             return ArtifactList;
         }
     }
-    class FileIO
+    class SettingFileWriter
     {
-        public static void TxtReplace(string filename, string oldtext, string newtext) //txtファイルの内容を置き換える
+        public void ReplaceText(string filename, string oldtext, string newtext) //txtファイルの内容を置き換える
         {
             StringBuilder TxtBuilder = new StringBuilder();
             string[] TxtLine = File.ReadAllLines(filename, Encoding.UTF8);
             for (int i = 0; i < TxtLine.GetLength(0); i++)
             {
-                if (TxtLine[i].Contains(oldtext) == true)
+                if (TxtLine[i].Contains(oldtext))
                 {
                     TxtBuilder.AppendLine(TxtLine[i].Replace(oldtext, newtext));
                 }
@@ -249,56 +281,8 @@ namespace CalcsheetGenerator
             }
             File.WriteAllText(filename, TxtBuilder.ToString());
         }
-        public static void EditTxtConfig(bool isArtifactModeEnabled, string WeaponName, string CharacterName, string WeaponRefineRank, bool isCleanupModeEnabled, ArtifactData Artifact) //txtファイルに書き込む内容を指定する
-        {
-            string OldTextWeapon = $"{CharacterName} add weapon=\"<w>\" refine=<r>";
-            string NewTextWeapon = $"{CharacterName} add weapon=\"{WeaponName}\" refine={WeaponRefineRank}";
 
-            string OldTextArtifact = $"{CharacterName} add set=\"<a>\" count=<p>;";//置き換え前の文章（聖遺物）
-            string NewTextArtifact;//変数だけ作っておく
-
-            if (ArtifactPieces._4pc.Equals(Artifact.PiecesCheck))//聖遺物モード:4セットか2セット混合かで分岐
-            {
-                //4セット混合
-                NewTextArtifact = $"{CharacterName} add set=\"{Artifact.Name1}\" count=4;";//置き換え後の文章（聖遺物）
-            }
-            else
-            {
-                //2セット混合
-                NewTextArtifact = $"{CharacterName} add set=\"{Artifact.Name1}\" count=2; {Environment.NewLine}{CharacterName} add set=\"{Artifact.Name2}\" count=2;";//置き換え後の文章（聖遺物）
-            }
-
-            if (isArtifactModeEnabled == true)//聖遺物モード
-            {
-                TxtReplace(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
-            }
-
-            if (isCleanupModeEnabled == true)
-            {
-                //クリーンアップモード
-                TxtReplace(Config.Path.File.SimConfigText, NewTextWeapon, OldTextWeapon);
-
-                if (isArtifactModeEnabled == true)
-                {
-                    TxtReplace(Config.Path.File.SimConfigText, NewTextArtifact, OldTextArtifact);
-                }
-
-                Debug.WriteLine("Cleaned");
-            }
-            else
-            {
-                //置き換えモード
-                TxtReplace(Config.Path.File.SimConfigText, OldTextWeapon, NewTextWeapon);
-
-                if (isArtifactModeEnabled == true)
-                {
-                    TxtReplace(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
-                }
-
-                Debug.WriteLine("Replaced");
-            }
-        }
-        static public void DataTableToCsv(DataTable OutputDataTable, string CsvFileName, bool CsvHeader)
+        public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName)
         {
             string Separator = string.Empty;
             List<int> filterIndex = new List<int>();
@@ -306,15 +290,12 @@ namespace CalcsheetGenerator
             using (StreamWriter CsvWriter = new StreamWriter(CsvFileName, false, Encoding.UTF8))
             {
                 //ヘッダーを出力
-                if (CsvHeader)
+                foreach (DataColumn CsvColumn in OutputDataTable.Columns)
                 {
-                    foreach (DataColumn CsvColumn in OutputDataTable.Columns)
-                    {
-                        CsvWriter.Write(Separator + "\"" + CsvColumn.ToString().Replace("\"", "\"\"") + "\"");
-                        Separator = ",";
-                    }
-                    CsvWriter.WriteLine();
+                    CsvWriter.Write(Separator + "\"" + CsvColumn.ToString().Replace("\"", "\"\"") + "\"");
+                    Separator = ",";
                 }
+                CsvWriter.WriteLine();
                 //内容を出力
                 foreach (DataRow CsvRow in OutputDataTable.Rows)
                 {
@@ -376,7 +357,7 @@ namespace CalcsheetGenerator
             Debug.WriteLine(GcsimOutput);
 
             //エラー分岐
-            if (GcsimOutput == "")
+            if (string.IsNullOrEmpty(GcsimOutput))
             {
                 Console.WriteLine(Message.Error.GcsimOutputNone);
                 return 0;//計算不能の場合DPS:0として返す
