@@ -9,17 +9,19 @@ namespace CalcsheetGenerator
 {
     class Primary
     {
+        static readonly IPreparation _Preparation = Preparation.GetInstance();
+        static readonly ISettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
+        static readonly ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
+
         public static void Main()
         {
             try
             {
-                Preparation Preparation = new Preparation();
-
                 //起動時設定
-                Preparation.SelectMode();
+                _Preparation.SelectMode();
 
                 //設定取得
-                UserInput InitialSetting = Preparation.Startup();
+                UserInput InitialSetting = _Preparation.Startup();
 
                 //nullまたは空文字が入ったら強制終了
                 if (InitialSetting.CheckNullAndEmpty())
@@ -35,8 +37,6 @@ namespace CalcsheetGenerator
                 OutputDataTable.Columns.Add("精錬R");
                 OutputDataTable.Columns.Add("DPS");
 
-                SettingFileReader _SettingFileReader = new SettingFileReader(OutputDataTable, InitialSetting);
-                SettingFileWriter _SettingFileWriter = new SettingFileWriter();
                 Gcsim _Gcsim = new Gcsim();
 
                 //モードごとに処理
@@ -51,7 +51,7 @@ namespace CalcsheetGenerator
                     if (isArtifactModeEnabled) {
                         Console.WriteLine($"{Message.Notice.ProcessStart}{Artifact.Name1} {Artifact.Name2}"); //開始メッセージ
                     }
-                    List<WeaponData> WeaponList = _SettingFileReader.GetWeaponList();
+                    List<WeaponData> WeaponList = _SettingFileReader.GetWeaponList(InitialSetting);
                     
                     foreach (WeaponData Weapon in WeaponList)
                     {
@@ -125,9 +125,20 @@ namespace CalcsheetGenerator
             }
         }
     }
-    class Preparation
+    class Preparation : IPreparation
     {
-        Mode mode = Mode.None;
+        private static readonly Preparation Instance = new Preparation();
+
+        public Mode Mode = Mode.None;
+
+        private Preparation()
+        {
+            //pass
+        }
+        public static Preparation GetInstance()
+        {
+            return Preparation.Instance;
+        }
 
         public void SelectMode()
         {
@@ -138,10 +149,10 @@ namespace CalcsheetGenerator
             switch (UserInputModeSelection)
             {
                 case "a":
-                    this.mode = Mode.Auto;
+                    this.Mode = Mode.Auto;
                     break;
                 case "m":
-                    this.mode = Mode.Manual;
+                    this.Mode = Mode.Manual;
                     break;
                 default:
                     throw new FormatException(Message.Error.SelectMode);
@@ -150,7 +161,7 @@ namespace CalcsheetGenerator
 
         public UserInput Startup()//manualモード
         {
-            if (Mode.None.Equals(this.mode)){
+            if (Mode.None.Equals(this.Mode)){
                 // TODO throw
             }
             string? WeaponRefinerank = "0";
@@ -164,7 +175,7 @@ namespace CalcsheetGenerator
             Console.WriteLine(Message.Notice.SelectWeapon);
             string? WeaponType = Console.ReadLine();
 
-            if (Mode.Manual.Equals(this.mode))
+            if (Mode.Manual.Equals(this.Mode))
             {
                 //精錬ランク指定
                 Console.WriteLine(Message.Notice.SelectRefinement);
@@ -184,19 +195,22 @@ namespace CalcsheetGenerator
     record ArtifactData(string PiecesCheck, string Name1, string Name2);
     class SettingFileReader : ISettingFileReader
     {
-        DataTable OutputDataTable;
-        UserInput InitialSetting;
+        private static readonly SettingFileReader Instance = new SettingFileReader();
 
-        public SettingFileReader(DataTable OutputDataTable, UserInput InitialSetting)
+        private SettingFileReader()
         {
-            this.OutputDataTable = OutputDataTable;
-            this.InitialSetting = InitialSetting;
+            // pass
         }
 
-        public List<WeaponData> GetWeaponList() //CSV読み込み（武器）
+        public static SettingFileReader GetInstance()
+        {
+            return SettingFileReader.Instance;
+        }
+
+        public List<WeaponData> GetWeaponList(UserInput InitialSetting) //CSV読み込み（武器）
         {
             //ファイル名
-            string CsvPathWeapon = $"{Config.Path.Directiry.WeaponData}{this.InitialSetting.WeaponType}.csv";
+            string CsvPathWeapon = $"{Config.Path.Directiry.WeaponData}{InitialSetting.WeaponType}.csv";
 
             //取得したデータを保存するリスト
             List<WeaponData> WeaponList = new List<WeaponData>();
@@ -257,8 +271,20 @@ namespace CalcsheetGenerator
             return ArtifactList;
         }
     }
-    class SettingFileWriter
+    class SettingFileWriter : ISettingFileWriter
     {
+        private static readonly SettingFileWriter Instance = new SettingFileWriter();
+
+        private SettingFileWriter()
+        {
+            //pass
+        }
+        
+        public static SettingFileWriter GetInstance()
+        {
+            return SettingFileWriter.Instance;
+        }
+
         public void ReplaceText(string filename, string oldtext, string newtext) //txtファイルの内容を置き換える
         {
             StringBuilder TxtBuilder = new StringBuilder();
