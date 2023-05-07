@@ -37,6 +37,7 @@ namespace CalcsheetGenerator
 
                 SettingFileReader _SettingFileReader = new SettingFileReader(OutputDataTable, InitialSetting);
                 SettingFileWriter _SettingFileWriter = new SettingFileWriter();
+                Gcsim _Gcsim = new Gcsim();
 
                 //モードごとに処理
                 bool isArtifactModeEnabled = InitialSetting.ArtifactModeSel == "y";
@@ -54,8 +55,6 @@ namespace CalcsheetGenerator
                     
                     foreach (WeaponData Weapon in WeaponList)
                     {
-                        bool isAutoRefineModeEnabled = false;//自動精錬ランク設定初期化
-
                         string WeaponRefineRank = InitialSetting.WeaponRefineRank;
                         //rarityに応じた自動精錬ランク設定
                         if (InitialSetting.WeaponRefineRank == "0")
@@ -93,7 +92,7 @@ namespace CalcsheetGenerator
 
                         Debug.WriteLine("Replaced");
 
-                        float WeaponDps = Gcsim.GetWeaponDps(InitialSetting.CharacterName); //gcsim起動
+                        float WeaponDps = _Gcsim.GetWeaponDps(InitialSetting.CharacterName); //gcsim起動
 
                         Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
 
@@ -109,10 +108,6 @@ namespace CalcsheetGenerator
 
                         Debug.WriteLine("Cleaned");
 
-                        if (isAutoRefineModeEnabled)//自動精錬ランク設定を次の武器に引き継ぐ
-                        {
-                            InitialSetting.WeaponRefineRank = "0";
-                        }
                     }
 
                     _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, $"table_{Artifact.Name1}_{Artifact.Name2}.csv");
@@ -312,7 +307,7 @@ namespace CalcsheetGenerator
     }
     class Gcsim
     {
-        public static float GetWeaponDps(string CharacterName)//gcsimで計算
+        public float GetWeaponDps(string CharacterName)//gcsimで計算
         {
             // Processクラスのオブジェクトを作成
             Process Gcsim = new Process();
