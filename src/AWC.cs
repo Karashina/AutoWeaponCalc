@@ -77,7 +77,7 @@ namespace CalcsheetGenerator
 
                         FileIO.EditTxtConfig(isArtifactModeEnabled, Weapon.NameInternal, InitialSetting.CharacterName, WeaponRefinerank, true, Artifact); //configファイルを元に戻す
 
-                        if (isAutoRefineModeEnabled == true)//自動精錬ランク設定を次の武器に引き継ぐ
+                        if (isAutoRefineModeEnabled)//自動精錬ランク設定を次の武器に引き継ぐ
                         {
                             InitialSetting.WeaponRefinerank = "0";
                         }
@@ -100,7 +100,7 @@ namespace CalcsheetGenerator
     }
     class Preparation
     {
-        Mode mode = Mode.none;
+        Mode mode = Mode.None;
 
         public void SelectMode()
         {
@@ -111,10 +111,10 @@ namespace CalcsheetGenerator
             switch (UserInputModeSelection)
             {
                 case "a":
-                    this.mode = Mode.auto;
+                    this.mode = Mode.Auto;
                     break;
                 case "m":
-                    this.mode = Mode.manual;
+                    this.mode = Mode.Manual;
                     break;
                 default:
                     throw new FormatException(Message.Error.SelectMode);
@@ -123,7 +123,7 @@ namespace CalcsheetGenerator
 
         public UserInput Startup()//manualモード
         {
-            if (Mode.none.Equals(this.mode)){
+            if (Mode.None.Equals(this.mode)){
                 // TODO throw
             }
             string? WeaponRefinerank = "0";
@@ -137,7 +137,7 @@ namespace CalcsheetGenerator
             Console.WriteLine(Message.Notice.SelectWeapon);
             string? WeaponType = Console.ReadLine();
 
-            if (Mode.manual.Equals(this.mode))
+            if (Mode.Manual.Equals(this.mode))
             {
                 //精錬ランク指定
                 Console.WriteLine(Message.Notice.SelectRefinement);

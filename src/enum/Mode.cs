@@ -1,8 +1,8 @@
 namespace Common {
     public enum Mode
     {
-        none = 0,
-        auto = 1,
-        manual = 2
+        None = 0,
+        Auto = 1,
+        Manual = 2
     }
 }
