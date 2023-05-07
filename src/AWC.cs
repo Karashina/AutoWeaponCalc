@@ -123,7 +123,7 @@ namespace CalcsheetGenerator
             catch (Exception ex)
             {
                 Console.WriteLine(ex.Message);
-                Environment.Exit(1);
+                _Environment.Current.Exit(1);
             }
         }
     }
@@ -164,7 +164,7 @@ namespace CalcsheetGenerator
         public UserInput Startup()//manualモード
         {
             if (Mode.None.Equals(this.Mode)){
-                // TODO throw
+                throw new Exception(Message.Error.SelectMode);
             }
             string? WeaponRefinerank = "0";
             string? ArtifactModeSel = "y";
@@ -312,6 +312,7 @@ namespace CalcsheetGenerator
 
             using (StreamWriter CsvWriter = new StreamWriter(CsvFileName, false, Encoding.UTF8))
             {
+                //
                 //ヘッダーを出力
                 foreach (DataColumn CsvColumn in OutputDataTable.Columns)
                 {
