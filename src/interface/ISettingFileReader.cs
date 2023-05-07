@@ -1,7 +1,6 @@
-using Common;
-using CalcsheetGenerator;
+using CalcsheetGenerator.Common;
 
-namespace Interfaces
+namespace CalcsheetGenerator.Interfaces
 {
     interface ISettingFileReader
     {

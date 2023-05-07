@@ -1,6 +1,6 @@
-using Common;
+using CalcsheetGenerator.Common;
 
-namespace Interfaces
+namespace CalcsheetGenerator.Interfaces
 {
     interface IPreparation
     {

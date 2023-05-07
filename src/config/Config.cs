@@ -1,4 +1,4 @@
-namespace Config
+namespace CalcsheetGenerator.Config
 {
     public static class Path
     {

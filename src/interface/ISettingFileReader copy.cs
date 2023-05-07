@@ -1,6 +1,6 @@
 using System.Data;
 
-namespace Interfaces
+namespace CalcsheetGenerator.Interfaces
 {
     interface ISettingFileWriter
     {

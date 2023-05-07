@@ -1,4 +1,4 @@
-namespace Common
+namespace CalcsheetGenerator.Common
 {
     public static class Message
     {

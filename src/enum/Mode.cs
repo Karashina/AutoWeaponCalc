@@ -1,4 +1,5 @@
-namespace Common {
+namespace CalcsheetGenerator.Enum
+{
     public enum Mode
     {
         None = 0,
