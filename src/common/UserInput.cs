@@ -22,9 +22,9 @@ namespace CalcsheetGenerator.Common
                 string.IsNullOrEmpty(this.WeaponRefineRank) ||
                 string.IsNullOrEmpty(this.ArtifactModeSel))
             {
-                return false;
+                return true;
             }
-            return true;
+            return false;
         }
     }
 }
