@@ -11,9 +11,9 @@ namespace CalcsheetGenerator
 {
     public class Primary
     {
-        static readonly IPreparation _Preparation = Preparation.GetInstance();
-        static readonly ISettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
-        static readonly ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
+        static readonly Preparation _Preparation = Preparation.GetInstance();
+        static readonly SettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
+        static readonly SettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
 
         public static void Main()
         {
@@ -44,7 +44,7 @@ namespace CalcsheetGenerator
                 //モードごとに処理
                 bool isArtifactModeEnabled = InitialSetting.ArtifactModeSel == "y";
                 
-                List<ArtifactData> ArtifactList = isArtifactModeEnabled ? 
+                List<ArtifactData> ArtifactList = isArtifactModeEnabled ?
                     _SettingFileReader.GetArtifactList() : // 聖遺物のセットごとの算出
                     new List<ArtifactData>{new ArtifactData(ArtifactPieces._4pc, "", "")}; //武器のみの算出のダミー用聖遺物
 
@@ -127,7 +127,7 @@ namespace CalcsheetGenerator
             }
         }
     }
-    class Preparation : IPreparation
+    public class Preparation : IPreparation
     {
         private static readonly Preparation Instance = new Preparation();
 
@@ -193,9 +193,9 @@ namespace CalcsheetGenerator
     }
 
     //データを格納するレコード
-    record WeaponData(string NameJapanese, string NameInternal, string Rarity);
-    record ArtifactData(string PiecesCheck, string Name1, string Name2);
-    class SettingFileReader : ISettingFileReader
+    public record WeaponData(string NameJapanese, string NameInternal, string Rarity);
+    public record ArtifactData(string PiecesCheck, string Name1, string Name2);
+    public class SettingFileReader : ISettingFileReader
     {
         private static readonly SettingFileReader Instance = new SettingFileReader();
 
@@ -209,7 +209,7 @@ namespace CalcsheetGenerator
             return SettingFileReader.Instance;
         }
 
-        public List<WeaponData> GetWeaponList(UserInput InitialSetting) //CSV読み込み（武器）
+        public List<WeaponData> GetWeaponList(UserInput InitialSetting, StreamReaderFactory _StreamReader=null) //CSV読み込み（武器）
         {
             //ファイル名
             string CsvPathWeapon = $"{Config.Path.Directiry.WeaponData}{InitialSetting.WeaponType}.csv";
@@ -218,7 +218,7 @@ namespace CalcsheetGenerator
             List<WeaponData> WeaponList = new List<WeaponData>();
 
             //CSV読み込み部分
-            using (StreamReader WeaponCsvReader = new StreamReader(CsvPathWeapon))
+            using (StreamReader WeaponCsvReader = (_StreamReader?? new StreamReaderFactory()).Create(CsvPathWeapon))
             {
                 while (0 <= WeaponCsvReader.Peek())
                 {
@@ -239,13 +239,13 @@ namespace CalcsheetGenerator
             return WeaponList;
         }
 
-        public List<ArtifactData> GetArtifactList()//CSV読み込みと計算
+        public List<ArtifactData> GetArtifactList(StreamReaderFactory _StreamReader=null)//CSV読み込みと計算
         {
             //取得したデータを保存するリスト
             List<ArtifactData> ArtifactList = new List<ArtifactData>();
 
             //ファイルを開く
-            using (StreamReader ArtifactCsvReader = new StreamReader(Config.Path.File.ArtifactCsv))
+            using (StreamReader ArtifactCsvReader = (_StreamReader?? new StreamReaderFactory()).Create(Config.Path.File.ArtifactCsv))
             {
                 while (0 <= ArtifactCsvReader.Peek())
                 {
@@ -273,7 +273,7 @@ namespace CalcsheetGenerator
             return ArtifactList;
         }
     }
-    class SettingFileWriter : ISettingFileWriter
+    public class SettingFileWriter : ISettingFileWriter
     {
         private static readonly SettingFileWriter Instance = new SettingFileWriter();
 
@@ -395,6 +395,7 @@ namespace CalcsheetGenerator
                 string WeaponDps = GcsimOutput.Substring(GcsimOutput.IndexOf(Query1)).Replace(Query1, "");
 
                 //DPS数値検索:足
+                //floatに変換して返す
                 return float.Parse(WeaponDps.Substring(0, WeaponDps.IndexOf(";")));
             }
         }
