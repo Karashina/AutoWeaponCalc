@@ -5,9 +5,9 @@ namespace CalcsheetGenerator.Interfaces
 {
     public interface ISettingFileReader
     {
-        public abstract List<WeaponData> GetWeaponList(UserInput InitialSetting, StreamReaderFactory _StreamReader);
+        public abstract List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReaderFactory StreamReaderFactory);
 
-        public abstract List<ArtifactData> GetArtifactList(StreamReaderFactory _StreamReader);
+        public abstract List<ArtifactData> GetArtifactList(IStreamReaderFactory StreamReaderFactory);
     }
 
 }

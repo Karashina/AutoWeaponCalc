@@ -1,7 +1,7 @@
 using CalcsheetGenerator.Interfaces;
 
 namespace CalcsheetGenerator.Module{
-    public partial class StreamReaderFactory : IStreamReader
+    public partial class StreamReaderFactory : IStreamReaderFactory
     {
         public StreamReader Create(string Path)
         {
