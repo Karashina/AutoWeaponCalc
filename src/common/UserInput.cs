@@ -17,14 +17,10 @@ namespace CalcsheetGenerator.Common
 
         public bool CheckNullAndEmpty()
         {
-            if (string.IsNullOrEmpty(this.CharacterName) ||
+            return (string.IsNullOrEmpty(this.CharacterName) ||
                 string.IsNullOrEmpty(this.WeaponType) ||
                 string.IsNullOrEmpty(this.WeaponRefineRank) ||
-                string.IsNullOrEmpty(this.ArtifactModeSel))
-            {
-                return true;
-            }
-            return false;
+                string.IsNullOrEmpty(this.ArtifactModeSel));
         }
     }
 }

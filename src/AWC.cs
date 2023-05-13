@@ -209,7 +209,7 @@ namespace CalcsheetGenerator
             return SettingFileReader.Instance;
         }
 
-        public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReaderFactory StreamReaderFactory=null) //CSV読み込み（武器）
+        public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReader _StreamReader=null) //CSV読み込み（武器）
         {
             //ファイル名
             string CsvPathWeapon = $"{Config.Path.Directiry.WeaponData}{InitialSetting.WeaponType}.csv";
@@ -218,7 +218,7 @@ namespace CalcsheetGenerator
             List<WeaponData> WeaponList = new List<WeaponData>();
 
             //CSV読み込み部分
-            using (StreamReader WeaponCsvReader = (StreamReaderFactory ?? new StreamReaderFactory()).Create(CsvPathWeapon))
+            using (StreamReader WeaponCsvReader = (_StreamReader ?? new _StreamReader()).Create(CsvPathWeapon))
             {
                 while (0 <= WeaponCsvReader.Peek())
                 {
@@ -239,13 +239,13 @@ namespace CalcsheetGenerator
             return WeaponList;
         }
 
-        public List<ArtifactData> GetArtifactList(IStreamReaderFactory StreamReaderFactory=null)//CSV読み込みと計算
+        public List<ArtifactData> GetArtifactList(IStreamReader StreamReaderFactory=null)//CSV読み込みと計算
         {
             //取得したデータを保存するリスト
             List<ArtifactData> ArtifactList = new List<ArtifactData>();
 
             //ファイルを開く
-            using (StreamReader ArtifactCsvReader = (StreamReaderFactory?? new StreamReaderFactory()).Create(Config.Path.File.ArtifactCsv))
+            using (StreamReader ArtifactCsvReader = (StreamReaderFactory?? new _StreamReader()).Create(Config.Path.File.ArtifactCsv))
             {
                 while (0 <= ArtifactCsvReader.Peek())
                 {
