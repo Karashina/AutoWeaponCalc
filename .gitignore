@@ -2,6 +2,11 @@
 .DS_Store
 /out
 
+#input file
+resource/execBinary
+resource/input/*.csv
+resource/input/*.txt
+
 # Visual Studio output
 .vs
 *.suo
