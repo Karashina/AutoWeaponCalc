@@ -239,13 +239,13 @@ namespace CalcsheetGenerator
             return WeaponList;
         }
 
-        public List<ArtifactData> GetArtifactList(IStreamReader StreamReaderFactory=null)//CSV読み込みと計算
+        public List<ArtifactData> GetArtifactList(IStreamReader _StreamReader=null)//CSV読み込みと計算
         {
             //取得したデータを保存するリスト
             List<ArtifactData> ArtifactList = new List<ArtifactData>();
 
             //ファイルを開く
-            using (StreamReader ArtifactCsvReader = (StreamReaderFactory?? new _StreamReader()).Create(Config.Path.File.ArtifactCsv))
+            using (StreamReader ArtifactCsvReader = (_StreamReader?? new _StreamReader()).Create(Config.Path.File.ArtifactCsv))
             {
                 while (0 <= ArtifactCsvReader.Peek())
                 {
@@ -272,9 +272,18 @@ namespace CalcsheetGenerator
 
             return ArtifactList;
         }
+
+        public string GetTextFileContet(string TextFilePath, IStreamReader _StreamReader=null)
+        {
+            using (StreamReader TextReader = (_StreamReader ?? new _StreamReader()).Create(TextFilePath))
+            {
+                return TextReader.ReadToEnd();
+            }
+        }
     }
     public class SettingFileWriter : ISettingFileWriter
     {
+        static readonly SettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
         private static readonly SettingFileWriter Instance = new SettingFileWriter();
 
         private SettingFileWriter()
@@ -287,36 +296,38 @@ namespace CalcsheetGenerator
             return SettingFileWriter.Instance;
         }
 
-        public void ReplaceText(string filename, string oldtext, string newtext) //txtファイルの内容を置き換える
+        public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriter _StreamWriter=null)
         {
-            StringBuilder TxtBuilder = new StringBuilder();
-            string[] TxtLine = File.ReadAllLines(filename, Encoding.UTF8);
-            for (int i = 0; i < TxtLine.GetLength(0); i++)
+            using (StreamWriter TextWriter = (_StreamWriter ?? new _StreamWriter()).Create(FilePath, Append, Encoding.UTF8))
             {
-                if (TxtLine[i].Contains(oldtext))
-                {
-                    TxtBuilder.AppendLine(TxtLine[i].Replace(oldtext, newtext));
-                }
-                else
-                {
-                    TxtBuilder.AppendLine(TxtLine[i]);
-                }
+                TextWriter.Write(TextContent);
             }
-            File.WriteAllText(filename, TxtBuilder.ToString());
         }
 
-        public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName)
+        public void ReplaceText(string FileName, string OldText, string NewText, IStreamWriter _StreamWriter=null) //txtファイルの内容を置き換える
+        {
+            string TextFileContet = _SettingFileReader.GetTextFileContet(FileName);
+            string[] TextFileLines = TextFileContet.Split(Environment.NewLine);
+            StringBuilder WriteTextFileLines = new StringBuilder();
+            foreach (string Line in TextFileLines)
+            {
+                WriteTextFileLines.Append(Line.Contains(OldText) ? Line.Replace(OldText, NewText) : Line);
+            }
+            WriteText(FileName, false, string.Join(Environment.NewLine, WriteTextFileLines));
+        }
+
+        public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName, IStreamWriter _StreamWriter=null)
         {
             string Separator = string.Empty;
             List<int> filterIndex = new List<int>();
 
-            using (StreamWriter CsvWriter = new StreamWriter(CsvFileName, false, Encoding.UTF8))
+            using (StreamWriter CsvWriter = (_StreamWriter ?? new _StreamWriter()).Create(CsvFileName, false, Encoding.UTF8))
             {
                 //
                 //ヘッダーを出力
                 foreach (DataColumn CsvColumn in OutputDataTable.Columns)
                 {
-                    CsvWriter.Write(Separator + "\"" + CsvColumn.ToString().Replace("\"", "\"\"") + "\"");
+                    CsvWriter.Write(Separator + CsvColumn.ToString().Replace("\"", "\"\""));
                     Separator = ",";
                 }
                 CsvWriter.WriteLine();
@@ -326,7 +337,7 @@ namespace CalcsheetGenerator
                     Separator = string.Empty;
                     for (int i = 0; i < OutputDataTable.Columns.Count; i++)
                     {
-                        CsvWriter.Write(Separator + "\"" + CsvRow[i].ToString().Replace("\"", "\"\"") + "\"");
+                        CsvWriter.Write(Separator + CsvRow[i].ToString().Replace("\"", "\"\""));
                         Separator = ",";
                     }
                     CsvWriter.WriteLine();
@@ -350,7 +361,7 @@ namespace CalcsheetGenerator
             Gcsim.StartInfo.RedirectStandardError = true;
 
             // gcsimを起動
-            Gcsim.StartInfo.FileName = Config.Path.File.GcSimWinExe;
+            Gcsim.StartInfo.FileName = Config.Path.File.GcSimDarwinBin;
 
             // gcsimに渡す引数
             Gcsim.StartInfo.Arguments = $"-c={Config.Path.File.SimConfigText} -substatOptim=true -out=OptimizedConfig.txt";

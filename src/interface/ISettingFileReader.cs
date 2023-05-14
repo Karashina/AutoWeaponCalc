@@ -7,6 +7,8 @@ namespace CalcsheetGenerator.Interfaces
         public abstract List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReader _StreamReader);
 
         public abstract List<ArtifactData> GetArtifactList(IStreamReader _StreamReader);
+
+        public abstract string GetTextFileContet(string TextFilePath, IStreamReader _StreamReader);
     }
 
 }
