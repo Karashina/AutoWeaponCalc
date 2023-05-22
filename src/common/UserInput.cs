@@ -2,12 +2,12 @@ namespace CalcsheetGenerator.Common
 {
     public class UserInput
     {
-        public string? CharacterName { get; } 
-        public string? WeaponType { get; } 
-        public string? WeaponRefineRank { get; set; } 
-        public string? ArtifactModeSel { get; set; } 
+        public string CharacterName { get; } 
+        public string WeaponType { get; } 
+        public string WeaponRefineRank { get; set; } 
+        public string ArtifactModeSel { get; set; } 
 
-        public UserInput(string? CharacterName, string? WeaponType, string? WeaponRefineRank, string? ArtifactModeSel)
+        public UserInput(string CharacterName, string WeaponType, string WeaponRefineRank, string ArtifactModeSel)
         {
             this.CharacterName = CharacterName;
             this.WeaponType = WeaponType;

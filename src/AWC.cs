@@ -94,7 +94,7 @@ namespace CalcsheetGenerator
 
                         Debug.WriteLine("Replaced");
 
-                        float WeaponDps = _Gcsim.GetWeaponDps(InitialSetting.CharacterName); //gcsim起動
+                        float WeaponDps = GetWeaponDps(_Gcsim.Exec(), InitialSetting.CharacterName); //gcsim起動
 
                         Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
 
@@ -125,6 +125,19 @@ namespace CalcsheetGenerator
                 Console.WriteLine(ex.Message);
                 _Environment.Current.Exit(1);
             }
+        }
+
+        public static float GetWeaponDps(string GcsimOutput, string CharacterName)
+        {
+            //DPS数値検索:頭
+            string Query1 = $"{CharacterName} total avg dps: ";
+
+            //DPS数値部分のみを切り出す
+            string WeaponDps = GcsimOutput.Substring(GcsimOutput.IndexOf(Query1)).Replace(Query1, "");
+
+            //DPS数値検索:足
+            //floatに変換して返す
+            return float.Parse(WeaponDps.Substring(0, WeaponDps.IndexOf(";")));
         }
     }
     public class Preparation : IPreparation
@@ -166,26 +179,26 @@ namespace CalcsheetGenerator
             if (Mode.None.Equals(this.Mode)){
                 throw new Exception(Message.Error.SelectMode);
             }
-            string? WeaponRefinerank = "0";
-            string? ArtifactModeSel = "y";
+            string WeaponRefinerank = "0";
+            string ArtifactModeSel = "y";
 
             //キャラ名指定
             Console.WriteLine(Message.Notice.SelectCharctor);
-            string? CharacterName = Console.ReadLine();
+            string CharacterName = Console.ReadLine() ?? "";
 
             //武器種指定
             Console.WriteLine(Message.Notice.SelectWeapon);
-            string? WeaponType = Console.ReadLine();
+            string WeaponType = Console.ReadLine() ?? "";
 
             if (Mode.Manual.Equals(this.Mode))
             {
                 //精錬ランク指定
                 Console.WriteLine(Message.Notice.SelectRefinement);
-                WeaponRefinerank = Console.ReadLine();
+                WeaponRefinerank = Console.ReadLine() ?? "";
 
                 //聖遺物モード切替
                 Console.WriteLine(Message.Notice.SelectArtifactOptimization);
-                ArtifactModeSel = Console.ReadLine();
+                ArtifactModeSel = Console.ReadLine() ?? "";
             }
 
             return new UserInput(CharacterName, WeaponType, WeaponRefinerank, ArtifactModeSel);
@@ -209,7 +222,7 @@ namespace CalcsheetGenerator
             return SettingFileReader.Instance;
         }
 
-        public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReader _StreamReader=null) //CSV読み込み（武器）
+        public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReader? _StreamReader=null) //CSV読み込み（武器）
         {
             //ファイル名
             string CsvPathWeapon = $"{Config.Path.Directiry.WeaponData}{InitialSetting.WeaponType}.csv";
@@ -319,7 +332,6 @@ namespace CalcsheetGenerator
         public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName, IStreamWriter _StreamWriter=null)
         {
             string Separator = string.Empty;
-            List<int> filterIndex = new List<int>();
 
             using (StreamWriter CsvWriter = (_StreamWriter ?? new _StreamWriter()).Create(CsvFileName, false, Encoding.UTF8))
             {
@@ -345,70 +357,54 @@ namespace CalcsheetGenerator
             }
         }
     }
-    class Gcsim
+    public class Gcsim
     {
-        public float GetWeaponDps(string CharacterName)//gcsimで計算
+        public String Exec(IProcess? _Process=null) //gcsimで計算
         {
             // Processクラスのオブジェクトを作成
-            Process Gcsim = new Process();
-
-            // ウィンドウを表示しない
-            Gcsim.StartInfo.CreateNoWindow = true;
-            Gcsim.StartInfo.UseShellExecute = false;
-
-            // 標準出力および標準エラー出力を取得可能にする
-            Gcsim.StartInfo.RedirectStandardOutput = true;
-            Gcsim.StartInfo.RedirectStandardError = true;
-
-            // gcsimを起動
-            Gcsim.StartInfo.FileName = Config.Path.File.GcSimDarwinBin;
-
-            // gcsimに渡す引数
-            Gcsim.StartInfo.Arguments = $"-c={Config.Path.File.SimConfigText} -substatOptim=true -out=OptimizedConfig.txt";
+            IGcsimProcess SubstatOptimizationProcess =  (_Process ?? new _Process()).Create( new[] {
+                Config.Path.File.GcSimWinExe, // 1回目にgcsimに渡す引数
+                $"-c={Config.Path.File.SimConfigText}",
+                "-substatOptim=true",
+                "-out=OptimizedConfig.txt"
+            });
 
             // プロセス起動1回目
-            Gcsim.Start();
+            SubstatOptimizationProcess.Start();
             Console.WriteLine(Message.Notice.SubstatOptimizationStart);
 
             // 標準出力を取得
-            string GcsimOutput = Gcsim.StandardOutput.ReadToEnd();
+            string? SubstatOptimizationProcessOutput = SubstatOptimizationProcess.GetOuptput();
 
             // 標準出力を表示
-            Debug.WriteLine(GcsimOutput);
-            Gcsim.WaitForExit();
+            Debug.WriteLine(SubstatOptimizationProcessOutput);
+            SubstatOptimizationProcess.WaitForExit();
             Console.WriteLine(Message.Notice.SubstatOptimizationEnd);
 
-            // 2回目にgcsimに渡す引数
-            Gcsim.StartInfo.Arguments = "-c=OptimizedConfig.txt";
+            
+            // Processクラスのオブジェクトを作成
+            IGcsimProcess CalcDPSProcess =  (_Process ?? new _Process()).Create( new[] {
+                Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
+                "-c=OptimizedConfig.txt"
+            });
 
             // プロセス起動2回目
-            Gcsim.Start();
+            CalcDPSProcess.Start();
 
             // 標準出力を取得
-            GcsimOutput = Gcsim.StandardOutput.ReadToEnd();
-            Gcsim.WaitForExit();
+            string? CalcDPSProcessOutput = CalcDPSProcess.GetOuptput();
+            CalcDPSProcess.WaitForExit();
 
             // 標準出力を表示
-            Debug.WriteLine(GcsimOutput);
+            Debug.WriteLine(CalcDPSProcessOutput);
 
             //エラー分岐
-            if (string.IsNullOrEmpty(GcsimOutput))
+            if (string.IsNullOrEmpty(CalcDPSProcessOutput))
             {
-                Console.WriteLine(Message.Error.GcsimOutputNone);
-                return 0;//計算不能の場合DPS:0として返す
+                // 出力がない場合は、エラーとする
+                throw new Exception(Message.Error.GcsimOutputNone);
             }
-            else
-            {
-                //DPS数値検索:頭
-                string Query1 = $"{CharacterName} total avg dps: ";
-
-                //DPS数値部分のみを切り出す
-                string WeaponDps = GcsimOutput.Substring(GcsimOutput.IndexOf(Query1)).Replace(Query1, "");
-
-                //DPS数値検索:足
-                //floatに変換して返す
-                return float.Parse(WeaponDps.Substring(0, WeaponDps.IndexOf(";")));
-            }
+            return CalcDPSProcessOutput;
         }
     }
 }
