@@ -236,7 +236,7 @@ namespace CalcsheetGenerator
                 while (0 <= WeaponCsvReader.Peek())
                 {
                     //カンマ区切りで分割して配列で格納する
-                    string[] Column = WeaponCsvReader.ReadLine()?.Split(',');
+                    string[]? Column = WeaponCsvReader.ReadLine()?.Split(',');
                     if (Column is null) continue;
 
                     //リストにデータを追加する
@@ -252,7 +252,7 @@ namespace CalcsheetGenerator
             return WeaponList;
         }
 
-        public List<ArtifactData> GetArtifactList(IStreamReader _StreamReader=null)//CSV読み込みと計算
+        public List<ArtifactData> GetArtifactList(IStreamReader? _StreamReader=null)//CSV読み込みと計算
         {
             //取得したデータを保存するリスト
             List<ArtifactData> ArtifactList = new List<ArtifactData>();
@@ -263,7 +263,7 @@ namespace CalcsheetGenerator
                 while (0 <= ArtifactCsvReader.Peek())
                 {
                     //カンマ区切りで分割して配列で格納する
-                    string[] Column = ArtifactCsvReader.ReadLine()?.Split(',');
+                    string[]? Column = ArtifactCsvReader.ReadLine()?.Split(',');
                     if (Column is null) continue;
 
                     //聖遺物2スロット目を使わない場合出力時に"〇〇4pc"となるようにする
@@ -286,7 +286,7 @@ namespace CalcsheetGenerator
             return ArtifactList;
         }
 
-        public string GetTextFileContet(string TextFilePath, IStreamReader _StreamReader=null)
+        public string GetTextFileContet(string TextFilePath, IStreamReader? _StreamReader=null)
         {
             using (StreamReader TextReader = (_StreamReader ?? new _StreamReader()).Create(TextFilePath))
             {
@@ -309,7 +309,7 @@ namespace CalcsheetGenerator
             return SettingFileWriter.Instance;
         }
 
-        public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriter _StreamWriter=null)
+        public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriter? _StreamWriter=null)
         {
             using (StreamWriter TextWriter = (_StreamWriter ?? new _StreamWriter()).Create(FilePath, Append, Encoding.UTF8))
             {
@@ -317,7 +317,7 @@ namespace CalcsheetGenerator
             }
         }
 
-        public void ReplaceText(string FileName, string OldText, string NewText, IStreamWriter _StreamWriter=null) //txtファイルの内容を置き換える
+        public void ReplaceText(string FileName, string OldText, string NewText, IStreamWriter? _StreamWriter=null) //txtファイルの内容を置き換える
         {
             string TextFileContet = _SettingFileReader.GetTextFileContet(FileName);
             string[] TextFileLines = TextFileContet.Split(Environment.NewLine);
@@ -329,7 +329,7 @@ namespace CalcsheetGenerator
             WriteText(FileName, false, string.Join(Environment.NewLine, WriteTextFileLines));
         }
 
-        public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName, IStreamWriter _StreamWriter=null)
+        public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName, IStreamWriter? _StreamWriter=null)
         {
             string Separator = string.Empty;
 
@@ -349,7 +349,7 @@ namespace CalcsheetGenerator
                     Separator = string.Empty;
                     for (int i = 0; i < OutputDataTable.Columns.Count; i++)
                     {
-                        CsvWriter.Write(Separator + CsvRow[i].ToString().Replace("\"", "\"\""));
+                        CsvWriter.Write(Separator + CsvRow[i].ToString()?.Replace("\"", "\"\""));
                         Separator = ",";
                     }
                     CsvWriter.WriteLine();

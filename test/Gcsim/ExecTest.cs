@@ -40,7 +40,7 @@ namespace Test.Methods
             Assert.NotEmpty(exception.Message);
         }
 
-                [Fact(DisplayName="出力が空文字の場合、例外を投げること")]
+        [Fact(DisplayName="出力が空文字の場合、例外を投げること")]
         public void ErrorOutputEmptyThrowException()
         {
             MockGcsimProcess.Setup(gp => gp.GetOuptput()).Returns(() =>"");
