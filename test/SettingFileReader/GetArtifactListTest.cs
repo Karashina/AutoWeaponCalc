@@ -12,7 +12,7 @@ namespace Test.Methods
         [Fact(DisplayName="聖遺物のCSVから聖遺物セット情報が取得できること")]
         public void Nomal()
         {
-            Mock<IStreamReader> MockStreamReaderFactory = new Mock<IStreamReader>();
+            Mock<IStreamReaderFactory> MockStreamReaderFactory = new Mock<IStreamReaderFactory>();
             string fakeCSVContents = String.Join(Environment.NewLine, new[]
             {
                 "is4pc,artiname1,artiname2(0 if null)",

@@ -18,7 +18,7 @@ namespace Test.Methods
         [Fact(DisplayName="武器のCSVから武器情報が取得できること")]
         public void Nomal()
         {
-            Mock<IStreamReader> MockStreamReaderFactory = new Mock<IStreamReader>();
+            Mock<IStreamReaderFactory> MockStreamReaderFactory = new Mock<IStreamReaderFactory>();
             string fakeCSVContents = String.Join(Environment.NewLine, new[]
             {
                 "weapontype,weaponname,rarity",
