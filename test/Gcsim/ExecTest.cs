@@ -5,7 +5,7 @@ namespace Test.Methods
 {
     public class ExecTest
     {
-        Mock<IProcess> MockProcess = new Mock<IProcess>();
+        Mock<IProcessFactory> MockProcess = new Mock<IProcessFactory>();
         Mock<IGcsimProcess> MockGcsimProcess = new Mock<IGcsimProcess>();
         // setup
         public ExecTest()

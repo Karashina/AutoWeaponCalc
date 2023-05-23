@@ -1,5 +1,4 @@
 using CalcsheetGenerator.Common;
-using CalcsheetGenerator.Enum;
 
 namespace CalcsheetGenerator.Interfaces
 {

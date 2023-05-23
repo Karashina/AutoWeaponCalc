@@ -1,6 +1,6 @@
 namespace CalcsheetGenerator.Interfaces
 {
-    public interface IStreamReader
+    public interface IStreamReaderFactory
     {
         abstract StreamReader Create(string Path);
     }

@@ -11,9 +11,9 @@ namespace CalcsheetGenerator
 {
     public class Primary
     {
-        static readonly Preparation _Preparation = Preparation.GetInstance();
-        static readonly SettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
-        static readonly SettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
+        static readonly IPreparation _Preparation = Preparation.GetInstance();
+        static readonly ISettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
+        static readonly ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
 
         public static void Main()
         {
@@ -241,7 +241,7 @@ namespace CalcsheetGenerator
             return SettingFileReader.Instance;
         }
 
-        public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReader? _StreamReader=null) //CSV読み込み（武器）
+        public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReaderFactory? _StreamReaderFactory=null) //CSV読み込み（武器）
         {
             //ファイル名
             string CsvPathWeapon = $"{Config.Path.Directiry.WeaponData}{InitialSetting.WeaponType}.csv";
@@ -250,7 +250,7 @@ namespace CalcsheetGenerator
             List<WeaponData> WeaponList = new List<WeaponData>();
 
             //CSV読み込み部分
-            using (StreamReader WeaponCsvReader = (_StreamReader ?? new _StreamReader()).Create(CsvPathWeapon))
+            using (StreamReader WeaponCsvReader = (_StreamReaderFactory ?? new StreamReaderFactory()).Create(CsvPathWeapon))
             {
                 while (0 <= WeaponCsvReader.Peek())
                 {
@@ -271,13 +271,13 @@ namespace CalcsheetGenerator
             return WeaponList;
         }
 
-        public List<ArtifactData> GetArtifactList(IStreamReader? _StreamReader=null)//CSV読み込みと計算
+        public List<ArtifactData> GetArtifactList(IStreamReaderFactory? _StreamReaderFactory=null)//CSV読み込みと計算
         {
             //取得したデータを保存するリスト
             List<ArtifactData> ArtifactList = new List<ArtifactData>();
 
             //ファイルを開く
-            using (StreamReader ArtifactCsvReader = (_StreamReader?? new _StreamReader()).Create(Config.Path.File.ArtifactCsv))
+            using (StreamReader ArtifactCsvReader = (_StreamReaderFactory?? new StreamReaderFactory()).Create(Config.Path.File.ArtifactCsv))
             {
                 while (0 <= ArtifactCsvReader.Peek())
                 {
@@ -305,9 +305,9 @@ namespace CalcsheetGenerator
             return ArtifactList;
         }
 
-        public string GetTextFileContet(string TextFilePath, IStreamReader? _StreamReader=null)
+        public string GetTextFileContet(string TextFilePath, IStreamReaderFactory? _StreamReaderFactory=null)
         {
-            using (StreamReader TextReader = (_StreamReader ?? new _StreamReader()).Create(TextFilePath))
+            using (StreamReader TextReader = (_StreamReaderFactory ?? new StreamReaderFactory()).Create(TextFilePath))
             {
                 return TextReader.ReadToEnd();
             }
@@ -365,10 +365,10 @@ namespace CalcsheetGenerator
     }
     public class Gcsim
     {
-        public String Exec(IProcess? _Process=null) //gcsimで計算
+        public String Exec(IProcessFactory? _ProcessFactory=null) //gcsimで計算
         {
             // Processクラスのオブジェクトを作成
-            IGcsimProcess SubstatOptimizationProcess =  (_Process ?? new _Process()).Create( new[] {
+            IGcsimProcess SubstatOptimizationProcess =  (_ProcessFactory ?? new ProcessFactory()).Create( new[] {
                 Config.Path.File.GcSimWinExe, // 1回目にgcsimに渡す引数
                 $"-c={Config.Path.File.SimConfigText}",
                 "-substatOptim=true",
@@ -389,7 +389,7 @@ namespace CalcsheetGenerator
 
             
             // Processクラスのオブジェクトを作成
-            IGcsimProcess CalcDPSProcess =  (_Process ?? new _Process()).Create( new[] {
+            IGcsimProcess CalcDPSProcess =  (_ProcessFactory ?? new ProcessFactory()).Create( new[] {
                 Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
                 "-c=OptimizedConfig.txt"
             });

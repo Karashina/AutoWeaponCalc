@@ -1,8 +1,6 @@
-using CalcsheetGenerator.Module;
-
 namespace CalcsheetGenerator.Interfaces
 {
-    public interface IProcess
+    public interface IProcessFactory
     {
 
         public IGcsimProcess Create(string[] args);
