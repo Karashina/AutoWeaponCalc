@@ -2,8 +2,9 @@ using System.Text;
 
 namespace CalcsheetGenerator.Interfaces
 {
-    public interface IStreamWriter
+    public interface IStreamWriter : IDisposable
     {
-        abstract StreamWriter Create(string Path, bool Append, Encoding type);
+        public void Write(string? Content);
+        public void WriteLine(string? Content);
     }
 }

@@ -81,15 +81,15 @@ namespace CalcsheetGenerator
 
                         if (isArtifactModeEnabled)//聖遺物モード
                         {
-                            _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
+                            ReplaceTextFile(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
                         }
 
                         //置き換えモード( //configファイル編集)
-                        _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, OldTextWeapon, NewTextWeapon);
+                        ReplaceTextFile(Config.Path.File.SimConfigText, OldTextWeapon, NewTextWeapon);
 
                         if (isArtifactModeEnabled)
                         {
-                            _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
+                            ReplaceTextFile(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
                         }
 
                         Debug.WriteLine("Replaced");
@@ -101,11 +101,11 @@ namespace CalcsheetGenerator
                         OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefineRank, WeaponDps); //tableに結果を格納
 
                         //クリーンアップモード(configファイルを元に戻す)
-                        _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, NewTextWeapon, OldTextWeapon);
+                        ReplaceTextFile(Config.Path.File.SimConfigText, NewTextWeapon, OldTextWeapon);
 
                         if (isArtifactModeEnabled)
                         {
-                            _SettingFileWriter.ReplaceText(Config.Path.File.SimConfigText, NewTextArtifact, OldTextArtifact);
+                            ReplaceTextFile(Config.Path.File.SimConfigText, NewTextArtifact, OldTextArtifact);
                         }
 
                         Debug.WriteLine("Cleaned");
@@ -139,6 +139,25 @@ namespace CalcsheetGenerator
             //floatに変換して返す
             return float.Parse(WeaponDps.Substring(0, WeaponDps.IndexOf(";")));
         }
+
+        public static string ReplaceText(string Content, string OldText, string NewText)
+        {
+            string[] TextFileLines = Content.Split(Environment.NewLine);
+            StringBuilder WriteTextFileLines = new StringBuilder();
+            foreach (string Line in TextFileLines)
+            {
+                WriteTextFileLines.Append(Line.Contains(OldText) ? Line.Replace(OldText, NewText) : Line);
+            }
+            return string.Join(Environment.NewLine, WriteTextFileLines);
+        }
+        
+        public static void ReplaceTextFile(string FileName, string OldText, string NewText) //txtファイルの内容を置き換える
+        {
+            string TextFileContet = _SettingFileReader.GetTextFileContet(FileName);
+            string ReplacedContent = Primary.ReplaceText(TextFileContet, FileName, OldText);
+            _SettingFileWriter.WriteText(FileName, false, ReplacedContent);
+        }
+
     }
     public class Preparation : IPreparation
     {
@@ -309,50 +328,37 @@ namespace CalcsheetGenerator
             return SettingFileWriter.Instance;
         }
 
-        public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriter? _StreamWriter=null)
+        public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriterFactory? StreamWriterFactory=null)
         {
-            using (StreamWriter TextWriter = (_StreamWriter ?? new _StreamWriter()).Create(FilePath, Append, Encoding.UTF8))
+            using (IStreamWriter TextWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(FilePath, Append, Encoding.UTF8))
             {
                 TextWriter.Write(TextContent);
             }
         }
 
-        public void ReplaceText(string FileName, string OldText, string NewText, IStreamWriter? _StreamWriter=null) //txtファイルの内容を置き換える
+        public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName, IStreamWriterFactory? StreamWriterFactory=null)
         {
-            string TextFileContet = _SettingFileReader.GetTextFileContet(FileName);
-            string[] TextFileLines = TextFileContet.Split(Environment.NewLine);
-            StringBuilder WriteTextFileLines = new StringBuilder();
-            foreach (string Line in TextFileLines)
+            using (IStreamWriter CsvWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(CsvFileName, false, Encoding.UTF8))
             {
-                WriteTextFileLines.Append(Line.Contains(OldText) ? Line.Replace(OldText, NewText) : Line);
-            }
-            WriteText(FileName, false, string.Join(Environment.NewLine, WriteTextFileLines));
-        }
-
-        public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName, IStreamWriter? _StreamWriter=null)
-        {
-            string Separator = string.Empty;
-
-            using (StreamWriter CsvWriter = (_StreamWriter ?? new _StreamWriter()).Create(CsvFileName, false, Encoding.UTF8))
-            {
-                //
                 //ヘッダーを出力
-                foreach (DataColumn CsvColumn in OutputDataTable.Columns)
-                {
-                    CsvWriter.Write(Separator + CsvColumn.ToString().Replace("\"", "\"\""));
-                    Separator = ",";
-                }
-                CsvWriter.WriteLine();
+                CsvWriter.WriteLine(string.Join(
+                    ",",
+                    OutputDataTable
+                        .Columns
+                        .Cast<DataColumn>()
+                        .Select(c => c.Caption)
+                        .Select(field => field.ToString())
+                ));
                 //内容を出力
                 foreach (DataRow CsvRow in OutputDataTable.Rows)
                 {
-                    Separator = string.Empty;
-                    for (int i = 0; i < OutputDataTable.Columns.Count; i++)
-                    {
-                        CsvWriter.Write(Separator + CsvRow[i].ToString()?.Replace("\"", "\"\""));
-                        Separator = ",";
-                    }
-                    CsvWriter.WriteLine();
+                    CsvWriter.WriteLine(string.Join(
+                    ",",
+                    CsvRow
+                        .ItemArray
+                        .Select(i => i?.ToString())
+                        .Select(field => field?.ToString())
+                    ));
                 }
             }
         }

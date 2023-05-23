@@ -5,9 +5,24 @@ using CalcsheetGenerator.Interfaces;
 namespace CalcsheetGenerator.Module{
     public partial class _StreamWriter : IStreamWriter
     {
-        public StreamWriter Create(string Path, bool Append, Encoding type)
+        StreamWriter? instance;
+
+        public _StreamWriter(string Path, bool Append, Encoding type)
         {
-            return new StreamWriter(Path, Append, type);
+            this.instance = new StreamWriter(Path, Append, type);
+        }
+        public void Write(string? Content)
+        {
+            instance?.Write(Content);
+        }
+        public void WriteLine(string? Content)
+        {
+            instance?.WriteLine(Content);
+        }
+
+        public void Dispose()
+        {
+            instance?.Dispose();
         }
     }
 }
