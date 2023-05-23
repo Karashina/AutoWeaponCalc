@@ -25,8 +25,8 @@ namespace CalcsheetGenerator
                 //設定取得
                 UserInput InitialSetting = _Preparation.Startup();
 
-                //nullまたは空文字が入ったら強制終了
-                if (InitialSetting.CheckNullAndEmpty())
+                //nullまたは空文字が初期設定のいずれかに入ったていたら強制終了
+                if (!InitialSetting.IsSetPropertyNullOrEmpty())
                 {
                     throw new FormatException(Message.Error.StartupAutomode);
                 }

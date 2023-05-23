@@ -15,7 +15,7 @@ namespace CalcsheetGenerator.Common
             this.ArtifactModeSel = ArtifactModeSel;
         }
 
-        public bool CheckNullAndEmpty()
+        public bool IsSetPropertyNullOrEmpty()
         {
             return (string.IsNullOrEmpty(this.CharacterName) ||
                 string.IsNullOrEmpty(this.WeaponType) ||
