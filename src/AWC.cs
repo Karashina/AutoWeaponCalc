@@ -161,7 +161,7 @@ namespace CalcsheetGenerator
     }
     public class Preparation : IPreparation
     {
-        private static readonly Preparation Instance = new Preparation();
+        private static Preparation? Instance;
 
         public Mode Mode = Mode.None;
 
@@ -171,6 +171,10 @@ namespace CalcsheetGenerator
         }
         public static Preparation GetInstance()
         {
+            if (Instance == null)
+            {
+                Preparation.Instance = new Preparation();
+            }
             return Preparation.Instance;
         }
 
@@ -229,7 +233,7 @@ namespace CalcsheetGenerator
     public record ArtifactData(string PiecesCheck, string Name1, string Name2);
     public class SettingFileReader : ISettingFileReader
     {
-        private static readonly SettingFileReader Instance = new SettingFileReader();
+        private static SettingFileReader? Instance;
 
         private SettingFileReader()
         {
@@ -238,6 +242,10 @@ namespace CalcsheetGenerator
 
         public static SettingFileReader GetInstance()
         {
+            if (Instance == null)
+            {
+                SettingFileReader.Instance = new SettingFileReader();
+            }
             return SettingFileReader.Instance;
         }
 
@@ -315,8 +323,7 @@ namespace CalcsheetGenerator
     }
     public class SettingFileWriter : ISettingFileWriter
     {
-        static readonly SettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
-        private static readonly SettingFileWriter Instance = new SettingFileWriter();
+        private static SettingFileWriter? Instance;
 
         private SettingFileWriter()
         {
@@ -325,6 +332,10 @@ namespace CalcsheetGenerator
 
         public static SettingFileWriter GetInstance()
         {
+            if (Instance == null)
+            {
+                SettingFileWriter.Instance = new SettingFileWriter();
+            }
             return SettingFileWriter.Instance;
         }
 
