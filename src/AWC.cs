@@ -399,8 +399,9 @@ namespace CalcsheetGenerator
 
             
             // Processクラスのオブジェクトを作成
-            IGcsimProcess CalcDPSProcess =  (_ProcessFactory ?? new ProcessFactory()).Create( new[] {
-                Config.Path.File.GcSimDarwinBin, // 2回目にgcsimに渡す引数
+            IGcsimProcess CalcDPSProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
+            new[] {
+                Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
                 "-c=OptimizedConfig.txt"
             });
 
