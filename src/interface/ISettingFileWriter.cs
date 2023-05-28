@@ -2,7 +2,7 @@ using System.Data;
 
 namespace CalcsheetGenerator.Interfaces
 {
-    interface ISettingFileWriter
+    public interface ISettingFileWriter
     {
 
         public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriterFactory? StreamWriterFactory=null);

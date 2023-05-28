@@ -15,7 +15,7 @@ namespace Test.Methods
             var input = new StringReader("a");
             Console.SetIn(input);
             _Preparation.SelectMode();
-            Assert.Equal(Mode.Auto, _Preparation.Mode);
+            Assert.Equal(Mode.Auto, _Preparation._Mode);
         }
 
         [Fact(DisplayName="モード指定Manualでマニュアルモードの設定になっていること")]
@@ -24,7 +24,7 @@ namespace Test.Methods
             var input = new StringReader("m");
             Console.SetIn(input);
             _Preparation.SelectMode();
-            Assert.Equal(Mode.Manual, _Preparation.Mode);
+            Assert.Equal(Mode.Manual, _Preparation._Mode);
         }
 
         [Fact(DisplayName="モード指定なしでFormatExceptionを返すこと")]

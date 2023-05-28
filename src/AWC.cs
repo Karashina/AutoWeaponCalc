@@ -11,9 +11,10 @@ namespace CalcsheetGenerator
 {
     public class Primary
     {
-        static readonly IPreparation _Preparation = Preparation.GetInstance();
-        static readonly ISettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
-        static readonly ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
+        private static IPreparation _Preparation = Preparation.GetInstance();
+        private static ISettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
+        private static ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
+        private static IGcsimManager _GcsimManager = GcsimManager.GetInstance();
 
         public static void Main()
         {
@@ -26,7 +27,7 @@ namespace CalcsheetGenerator
                 UserInput InitialSetting = _Preparation.Startup();
 
                 //nullまたは空文字が初期設定のいずれかに入ったていたら強制終了
-                if (!InitialSetting.IsSetPropertyNullOrEmpty())
+                if (InitialSetting.IsSetPropertyNullOrEmpty())
                 {
                     throw new FormatException(Message.Error.StartupAutomode);
                 }
@@ -39,7 +40,7 @@ namespace CalcsheetGenerator
                 OutputDataTable.Columns.Add("精錬R");
                 OutputDataTable.Columns.Add("DPS");
 
-                Gcsim _Gcsim = new Gcsim();
+                IGcsim _Gcsim = _GcsimManager.CreateGcsimInstance();
 
                 //モードごとに処理
                 bool isArtifactModeEnabled = InitialSetting.ArtifactModeSel == "y";
@@ -61,14 +62,7 @@ namespace CalcsheetGenerator
                         //rarityに応じた自動精錬ランク設定
                         if (InitialSetting.WeaponRefineRank == "0")
                         {
-                            if (Weapon.Rarity == "1")
-                            {
-                                WeaponRefineRank = "1";
-                            }
-                            else
-                            {
-                                WeaponRefineRank = "5";
-                            }
+                            WeaponRefineRank = Weapon.Rarity == "1" ? WeaponRefineRank = "1" : WeaponRefineRank = "5"; // 星5なら精錬ランク1 星4なら精錬ランク5に置き換え
                         }
 
                         string OldTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"<w>\" refine=<r>";
@@ -87,14 +81,19 @@ namespace CalcsheetGenerator
                         //置き換えモード( //configファイル編集)
                         ReplaceTextFile(Config.Path.File.SimConfigText, OldTextWeapon, NewTextWeapon);
 
-                        if (isArtifactModeEnabled)
-                        {
-                            ReplaceTextFile(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
-                        }
-
                         Debug.WriteLine("Replaced");
 
-                        float WeaponDps = GetWeaponDps(_Gcsim.Exec(), InitialSetting.CharacterName); //gcsim起動
+                        float WeaponDps = 0;
+                        try
+                        {
+                            WeaponDps = GetWeaponDps(_Gcsim.Exec(), InitialSetting.CharacterName); //gcsim起動
+                        }
+                        catch (Exception ge)
+                        {
+                            // Gcsimでの計算ができなかった場合、処理を継続させるためにエラーを出力
+                            // DPSは0とする
+                            Console.WriteLine(ge.Message);
+                        }
 
                         Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
 
@@ -111,8 +110,8 @@ namespace CalcsheetGenerator
                         Debug.WriteLine("Cleaned");
 
                     }
-
-                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, $"table_{Artifact.Name1}_{Artifact.Name2}.csv");
+                    string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
+                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directiry.Out + CSVFileName);
 
                     OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
                     if (isArtifactModeEnabled) {
@@ -143,10 +142,10 @@ namespace CalcsheetGenerator
         public static string ReplaceText(string Content, string OldText, string NewText)
         {
             string[] TextFileLines = Content.Split(Environment.NewLine);
-            StringBuilder WriteTextFileLines = new StringBuilder();
+            List<string> WriteTextFileLines = new List<string>();
             foreach (string Line in TextFileLines)
             {
-                WriteTextFileLines.Append(Line.Contains(OldText) ? Line.Replace(OldText, NewText) : Line);
+                WriteTextFileLines.Add(Line.Contains(OldText) ? Line.Replace(OldText, NewText) : Line);
             }
             return string.Join(Environment.NewLine, WriteTextFileLines);
         }
@@ -154,7 +153,7 @@ namespace CalcsheetGenerator
         public static void ReplaceTextFile(string FileName, string OldText, string NewText) //txtファイルの内容を置き換える
         {
             string TextFileContet = _SettingFileReader.GetTextFileContet(FileName);
-            string ReplacedContent = Primary.ReplaceText(TextFileContet, FileName, OldText);
+            string ReplacedContent = Primary.ReplaceText(TextFileContet, OldText, NewText);
             _SettingFileWriter.WriteText(FileName, false, ReplacedContent);
         }
 
@@ -163,7 +162,7 @@ namespace CalcsheetGenerator
     {
         private static Preparation? Instance;
 
-        public Mode Mode = Mode.None;
+        public Mode _Mode = Mode.None;
 
         private Preparation()
         {
@@ -187,10 +186,10 @@ namespace CalcsheetGenerator
             switch (UserInputModeSelection)
             {
                 case "a":
-                    this.Mode = Mode.Auto;
+                    this._Mode = Mode.Auto;
                     break;
                 case "m":
-                    this.Mode = Mode.Manual;
+                    this._Mode = Mode.Manual;
                     break;
                 default:
                     throw new FormatException(Message.Error.SelectMode);
@@ -199,7 +198,7 @@ namespace CalcsheetGenerator
 
         public UserInput Startup()//manualモード
         {
-            if (Mode.None.Equals(this.Mode)){
+            if (Mode.None.Equals(this._Mode)){
                 throw new Exception(Message.Error.SelectMode);
             }
             string WeaponRefinerank = "0";
@@ -213,7 +212,7 @@ namespace CalcsheetGenerator
             Console.WriteLine(Message.Notice.SelectWeapon);
             string WeaponType = Console.ReadLine() ?? "";
 
-            if (Mode.Manual.Equals(this.Mode))
+            if (Mode.Manual.Equals(this._Mode))
             {
                 //精錬ランク指定
                 Console.WriteLine(Message.Notice.SelectRefinement);
@@ -349,7 +348,7 @@ namespace CalcsheetGenerator
 
         public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName, IStreamWriterFactory? StreamWriterFactory=null)
         {
-            using (IStreamWriter CsvWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(CsvFileName, false, Encoding.UTF8))
+            using (IStreamWriter CsvWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(CsvFileName, true, Encoding.UTF8))
             {
                 //ヘッダーを出力
                 CsvWriter.WriteLine(string.Join(
@@ -374,13 +373,13 @@ namespace CalcsheetGenerator
             }
         }
     }
-    public class Gcsim
+    public class Gcsim : IGcsim
     {
         public String Exec(IProcessFactory? _ProcessFactory=null) //gcsimで計算
         {
             // Processクラスのオブジェクトを作成
             IGcsimProcess SubstatOptimizationProcess =  (_ProcessFactory ?? new ProcessFactory()).Create( new[] {
-                Config.Path.File.GcSimWinExe, // 1回目にgcsimに渡す引数
+                Config.Path.File.GcSimDarwinBin, // 1回目にgcsimに渡す引数
                 $"-c={Config.Path.File.SimConfigText}",
                 "-substatOptim=true",
                 "-out=OptimizedConfig.txt"
@@ -401,7 +400,7 @@ namespace CalcsheetGenerator
             
             // Processクラスのオブジェクトを作成
             IGcsimProcess CalcDPSProcess =  (_ProcessFactory ?? new ProcessFactory()).Create( new[] {
-                Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
+                Config.Path.File.GcSimDarwinBin, // 2回目にgcsimに渡す引数
                 "-c=OptimizedConfig.txt"
             });
 
@@ -413,7 +412,7 @@ namespace CalcsheetGenerator
             CalcDPSProcess.WaitForExit();
 
             // 標準出力を表示
-            Debug.WriteLine(CalcDPSProcessOutput);
+            Console.WriteLine(CalcDPSProcessOutput);
 
             //エラー分岐
             if (string.IsNullOrEmpty(CalcDPSProcessOutput))
