@@ -1,10 +1,10 @@
 {
-    "threshold": 0,
+    "threshold": 20,
     "reporters": [
         "consoleFull"
     ],
     "ignore": [
-        "test/methods/Primary/MainTest.cs"
+        "**/test/methods/Primary/MainTest.cs"
     ],
     "absolute": true
 }
