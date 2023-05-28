@@ -34,8 +34,7 @@ namespace Test.Methods
             MockProcess.Setup(p => p.Create(It.IsAny<string[]>())).Returns(MockGcsimProcess.Object);
 
             Gcsim _Gcsim = new Gcsim();
-            var exception = Assert.Throws<Exception>(() => 
-                _Gcsim.Exec(MockProcess.Object));
+            var exception = Assert.Throws<Exception>(() => _Gcsim.Exec(MockProcess.Object));
 
             Assert.NotEmpty(exception.Message);
         }
@@ -43,12 +42,11 @@ namespace Test.Methods
         [Fact(DisplayName="出力が空文字の場合、例外を投げること")]
         public void ErrorOutputEmptyThrowException()
         {
-            MockGcsimProcess.Setup(gp => gp.GetOuptput()).Returns(() =>"");
+            MockGcsimProcess.Setup(gp => gp.GetOuptput()).Returns(() => "");
             MockProcess.Setup(p => p.Create(It.IsAny<string[]>())).Returns(MockGcsimProcess.Object);
 
             Gcsim _Gcsim = new Gcsim();
-            var exception = Assert.Throws<Exception>(() => 
-                _Gcsim.Exec(MockProcess.Object));
+            var exception = Assert.Throws<Exception>(() => _Gcsim.Exec(MockProcess.Object));
 
             Assert.NotEmpty(exception.Message);
         }
