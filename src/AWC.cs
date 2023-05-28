@@ -378,8 +378,9 @@ namespace CalcsheetGenerator
         public String Exec(IProcessFactory? _ProcessFactory=null) //gcsimで計算
         {
             // Processクラスのオブジェクトを作成
-            IGcsimProcess SubstatOptimizationProcess =  (_ProcessFactory ?? new ProcessFactory()).Create( new[] {
-                Config.Path.File.GcSimDarwinBin, // 1回目にgcsimに渡す引数
+            IGcsimProcess SubstatOptimizationProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
+            new[] {
+                Config.Path.File.GcSimWinExe, // 1回目にgcsimに渡す引数
                 $"-c={Config.Path.File.SimConfigText}",
                 "-substatOptim=true",
                 "-out=OptimizedConfig.txt"
@@ -413,7 +414,7 @@ namespace CalcsheetGenerator
             CalcDPSProcess.WaitForExit();
 
             // 標準出力を表示
-            Console.WriteLine(CalcDPSProcessOutput);
+            Debug.WriteLine(CalcDPSProcessOutput);
 
             //エラー分岐
             if (string.IsNullOrEmpty(CalcDPSProcessOutput))
