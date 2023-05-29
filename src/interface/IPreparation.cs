@@ -2,7 +2,7 @@ using CalcsheetGenerator.Common;
 
 namespace CalcsheetGenerator.Interfaces
 {
-    interface IPreparation
+    public interface IPreparation
     {
         public abstract void SelectMode();
 

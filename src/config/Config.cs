@@ -5,6 +5,7 @@ namespace CalcsheetGenerator.Config
         public static class Directiry
         {
         public static readonly string Resource = "../resource/";
+        public static readonly string Out = "../out/";
         public static readonly string ExecBinary = $"{Resource}execBinary/";
         public static readonly string WeaponData = $"{Resource}weaponData/";
         public static readonly string Input = $"{Resource}input/";

@@ -2,12 +2,12 @@ namespace CalcsheetGenerator.Common
 {
     public class UserInput
     {
-        public string? CharacterName { get; } 
-        public string? WeaponType { get; } 
-        public string? WeaponRefineRank { get; set; } 
-        public string? ArtifactModeSel { get; set; } 
+        public string CharacterName { get; } 
+        public string WeaponType { get; } 
+        public string WeaponRefineRank { get; set; } 
+        public string ArtifactModeSel { get; set; } 
 
-        public UserInput(string? CharacterName, string? WeaponType, string? WeaponRefineRank, string? ArtifactModeSel)
+        public UserInput(string CharacterName, string WeaponType, string WeaponRefineRank, string ArtifactModeSel)
         {
             this.CharacterName = CharacterName;
             this.WeaponType = WeaponType;
@@ -15,16 +15,12 @@ namespace CalcsheetGenerator.Common
             this.ArtifactModeSel = ArtifactModeSel;
         }
 
-        public bool CheckNullAndEmpty()
+        public bool IsSetPropertyNullOrEmpty()
         {
-            if (string.IsNullOrEmpty(this.CharacterName) ||
+            return (string.IsNullOrEmpty(this.CharacterName) ||
                 string.IsNullOrEmpty(this.WeaponType) ||
                 string.IsNullOrEmpty(this.WeaponRefineRank) ||
-                string.IsNullOrEmpty(this.ArtifactModeSel))
-            {
-                return true;
-            }
-            return false;
+                string.IsNullOrEmpty(this.ArtifactModeSel));
         }
     }
 }
