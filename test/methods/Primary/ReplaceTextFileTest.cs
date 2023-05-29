@@ -5,6 +5,7 @@ using CalcsheetGenerator.Interfaces;
 
 namespace Test.Methods
 {
+    [Collection("singletonのためテスト直列化")]
     public class ReplaceTextFileTest
     {
         [Fact(DisplayName="コンテンツを読み込み、リプレイス処理の後書き込み処理が行われること")]

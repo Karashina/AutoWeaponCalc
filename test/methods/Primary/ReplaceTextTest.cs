@@ -2,6 +2,7 @@ using CalcsheetGenerator;
 
 namespace Test.Methods
 {
+        [Collection("singletonのためテスト直列化")]
     public class ReplaceTextTest
     {
         [Theory(DisplayName="武器と聖遺物の置き換え")]
