@@ -1,20 +1,24 @@
-# AutoWeaponCalc (AWC)
-## 概要
+![karashina_backgroupd](https://yt3.googleusercontent.com/SmDHp9rXpW5sj4BzIDj4SKruXZnn5w3JKdm8JWCE9-gpQbZ9KbwmfgYtC-6-bTpbHAk2G7iLsIg=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj)
+<h1 align="center">🖥️　AutoWeaponCalc (AWC)　🖥️</h1>
+
+## 　📜　概要
 動画用にキャラの武器比較をつくるとき、いちいちgcsimのsubstat optimizerモードを何度も使って計算するのが面倒だったので、
 一連の手順を自動化するために作ったコンソールアプリケーションです　<br>
 
 `config.txt`の編成、ローテーションを使って、指定したキャラの武器ごとの個人DPSを計算し、csvに出力します　<br>
 
 開発に関するご意見は[Issue](https://github.com/Karashina/AutoWeaponCalc/issues)にてお受けしております
+<br>
 
-## つかいかた
-### 事前準備
+## 🧑‍💻 つかいかた
+### 📥　事前準備
 1. gcsimの[Releases](https://github.com/genshinsim/gcsim/releases)より、`gcsim.exe`をダウンロードする[^1]
 2. ダウンロードした`gcsim.exe`を`resource/execBinary`ディレクトリに配置する
 
 
 [^1]:Windows以外の場合は別途案内(予定)
-### 実行方法
+---
+### 📊　実行方法
 1. 計算を行いたいgcsimのアクションリストを`config.txt`として保存する<br>
     [参考](resource/input/example/config.txt)
 
@@ -46,8 +50,8 @@ autoに設定するとこのあとの7と8にそれぞれ`0`と`y`を入れて�
 聖遺物モードを使用するかの選択肢です　<br>
 使用する場合`artifacts.csv`に書かれている聖遺物を上から使ってそれぞれの武器DPSを計算します　<br>
 
-## 構成ファイル説明
-### 構成ディレクトリ・ファイル一覧
+## 🗂️　構成ファイル説明
+### 📝　構成ディレクトリ・ファイル一覧
 
 | 構成ディレクトリ・ファイル名 | 説明 |
 | :--- | :--- |
@@ -76,8 +80,8 @@ autoに設定するとこのあとの7と8にそれぞれ`0`と`y`を入れて�
 | test | テスト関連の配置先ディレクトリ |
 | test/dummyText | テストに使用するダミーデータの配置先ディレクトリ |
 | test/methods | メソッドごとに記述したテストコードの配置先ディレクトリ |
-
-### ディレクトリ・ファイル構造
+---
+### 📁 ディレクトリ・ファイル構造
 ```
 .
 ├── AutoWeaponCalc.sln
@@ -118,7 +122,7 @@ autoに設定するとこのあとの7と8にそれぞれ`0`と`y`を入れて�
     └── methods
 ```
 
-## 起動例
+## 📃 起動例
 ```log
 mode selection(auto / manual) [a|m] :
 a
