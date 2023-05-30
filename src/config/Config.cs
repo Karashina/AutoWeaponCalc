@@ -16,6 +16,7 @@ namespace CalcsheetGenerator.Config
         public static readonly string GcSimWinExe = $"{Directiry.ExecBinary}gcsim.exe";
         public static readonly string ArtifactCsv = $"{Directiry.Input}artifacts.csv";
         public static readonly string SimConfigText = $"{Directiry.Input}config.txt";
+        public static readonly string TempSimConfigText = $"{Directiry.Input}temp.txt";
         //TODO 実行環境切り替えを実装したときに使用
         public static readonly string GcSimLinuxBin = $"{Directiry.ExecBinary}gcsim";
         public static readonly string GcSimDarwinBin = $"{Directiry.ExecBinary}gcsim";
