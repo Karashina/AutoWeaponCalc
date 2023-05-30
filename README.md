@@ -1,7 +1,8 @@
+# 
 ![karashina_backgroupd](https://yt3.googleusercontent.com/SmDHp9rXpW5sj4BzIDj4SKruXZnn5w3JKdm8JWCE9-gpQbZ9KbwmfgYtC-6-bTpbHAk2G7iLsIg=w1707-fcrop64=1,00005a57ffffa5a8-k-c0xffffffff-no-nd-rj)
 <h1 align="center">🖥️　AutoWeaponCalc (AWC)　🖥️</h1>
 
-## 　📜　概要
+## 📜　概要
 動画用にキャラの武器比較をつくるとき、いちいちgcsimのsubstat optimizerモードを何度も使って計算するのが面倒だったので、
 一連の手順を自動化するために作ったコンソールアプリケーションです　<br>
 
@@ -82,7 +83,7 @@ autoに設定するとこのあとの7と8にそれぞれ`0`と`y`を入れて�
 | test/methods | メソッドごとに記述したテストコードの配置先ディレクトリ |
 ---
 ### 📁 ディレクトリ・ファイル構造
-```
+```log
 .
 ├── AutoWeaponCalc.sln
 ├── Dockerfile 
