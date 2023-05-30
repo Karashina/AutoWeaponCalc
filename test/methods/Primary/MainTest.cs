@@ -63,6 +63,8 @@ namespace Test.Methods
             MockSettingFileWriter.Setup(sfw => sfw.WriteText(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), null));
             MockSettingFileWriter.Setup(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null))
                 .Callback<DataTable, string, IStreamWriterFactory?>((dt, str, swf) => ActualDataTables.Add(dt.Copy()));
+            Mock<_File> MockFile = new Mock<_File>();
+            _File.Current = MockFile.Object;
             //update singleton
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             SettingFileReaderFieldInfo?.SetValue(null, MockSettingFileReader.Object);
@@ -182,6 +184,8 @@ namespace Test.Methods
             MockSettingFileWriter.Setup(sfw => sfw.WriteText(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), null));
             MockSettingFileWriter.Setup(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null))
                 .Callback<DataTable, string, IStreamWriterFactory?>((dt, str, swf) => ActualDataTables.Add(dt.Copy()));
+            Mock<_File> MockFile = new Mock<_File>();
+            _File.Current = MockFile.Object;
             //update singleton
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             SettingFileReaderFieldInfo?.SetValue(null, MockSettingFileReader.Object);
@@ -269,6 +273,8 @@ namespace Test.Methods
             MockSettingFileWriter.Setup(sfw => sfw.WriteText(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), null));
             MockSettingFileWriter.Setup(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null))
                 .Callback<DataTable, string, IStreamWriterFactory?>((dt, str, swf) => ActualDataTables.Add(dt.Copy()));
+            Mock<_File> MockFile = new Mock<_File>();
+            _File.Current = MockFile.Object;
             //update singleton
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             SettingFileReaderFieldInfo?.SetValue(null, MockSettingFileReader.Object);
@@ -359,6 +365,8 @@ namespace Test.Methods
             MockSettingFileWriter.Setup(sfw => sfw.WriteText(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), null));
             MockSettingFileWriter.Setup(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null))
                 .Callback<DataTable, string, IStreamWriterFactory?>((dt, str, swf) => ActualDataTables.Add(dt.Copy()));
+            Mock<_File> MockFile = new Mock<_File>();
+            _File.Current = MockFile.Object;
             //update singleton
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             SettingFileReaderFieldInfo?.SetValue(null, MockSettingFileReader.Object);
