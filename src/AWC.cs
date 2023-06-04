@@ -326,7 +326,7 @@ namespace CalcsheetGenerator
         public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriterFactory? StreamWriterFactory=null)
         {
             //BOM無しのUTF8でテキストファイルを作成する
-            Encoding UTF8WithoutBOM = new System.Text.UTF8Encoding(false);
+            Encoding UTF8WithoutBOM = new UTF8Encoding(false);
 
             using (IStreamWriter TextWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(FilePath, Append, UTF8WithoutBOM))
             {
@@ -368,7 +368,7 @@ namespace CalcsheetGenerator
             // Processクラスのオブジェクトを作成
             IGcsimProcess SubstatOptimizationProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
             new[] {
-                Config.Path.File.GcSimWinExe, // 1回目にgcsimに渡す引数
+                Config.Path.File.GcSimDarwinBin, // 1回目にgcsimに渡す引数
                 $"-c={Config.Path.File.TempSimConfigText}",
                 "-substatOptim=true",
                 "-out=OptimizedConfig.txt"
@@ -390,7 +390,7 @@ namespace CalcsheetGenerator
             // Processクラスのオブジェクトを作成
             IGcsimProcess CalcDPSProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
             new[] {
-                Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
+                Config.Path.File.GcSimDarwinBin, // 2回目にgcsimに渡す引数
                 "-c=OptimizedConfig.txt"
             });
 
