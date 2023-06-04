@@ -34,7 +34,7 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
             MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContet(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
@@ -158,7 +158,7 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
             MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContet(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
@@ -247,7 +247,7 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
             MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContet(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
@@ -336,7 +336,7 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
             MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContet(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();

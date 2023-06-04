@@ -74,11 +74,11 @@ namespace CalcsheetGenerator
                             $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=4;" : //4セット混合
                             $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=2; {Environment.NewLine}{InitialSetting.CharacterName} add set=\"{Artifact.Name2}\" count=2;"; //2セット混合
 
-                        string TextFileContet = _SettingFileReader.GetTextFileContet(Config.Path.File.SimConfigText);
+                        string TextFileContet = _SettingFileReader.GetTextFileContent(Config.Path.File.SimConfigText);
                         string ReplacedContent = Primary.ReplaceText(TextFileContet,OldTextWeapon, NewTextWeapon);
                         if (isArtifactModeEnabled)//聖遺物モード
                         {
-                            ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextArtifact, OldTextArtifact);
+                            ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextArtifact, NewTextArtifact);
                         }
                         _SettingFileWriter.WriteText(Config.Path.File.TempSimConfigText, Append: false, ReplacedContent);
 
@@ -297,7 +297,7 @@ namespace CalcsheetGenerator
             return ArtifactList;
         }
 
-        public string GetTextFileContet(string TextFilePath, IStreamReaderFactory? _StreamReaderFactory=null)
+        public string GetTextFileContent(string TextFilePath, IStreamReaderFactory? _StreamReaderFactory=null)
         {
             using (StreamReader TextReader = (_StreamReaderFactory ?? new StreamReaderFactory()).Create(TextFilePath))
             {
@@ -325,7 +325,10 @@ namespace CalcsheetGenerator
 
         public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriterFactory? StreamWriterFactory=null)
         {
-            using (IStreamWriter TextWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(FilePath, Append, Encoding.UTF8))
+            //BOM無しのUTF8でテキストファイルを作成する
+            Encoding UTF8WithoutBOM = new System.Text.UTF8Encoding(false);
+
+            using (IStreamWriter TextWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(FilePath, Append, UTF8WithoutBOM))
             {
                 TextWriter.Write(TextContent);
             }
