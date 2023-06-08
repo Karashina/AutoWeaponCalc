@@ -34,7 +34,7 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
             MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContet(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
@@ -63,6 +63,8 @@ namespace Test.Methods
             MockSettingFileWriter.Setup(sfw => sfw.WriteText(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), null));
             MockSettingFileWriter.Setup(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null))
                 .Callback<DataTable, string, IStreamWriterFactory?>((dt, str, swf) => ActualDataTables.Add(dt.Copy()));
+            Mock<_File> MockFile = new Mock<_File>();
+            _File.Current = MockFile.Object;
             //update singleton
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             SettingFileReaderFieldInfo?.SetValue(null, MockSettingFileReader.Object);
@@ -156,7 +158,7 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
             MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContet(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
@@ -182,6 +184,8 @@ namespace Test.Methods
             MockSettingFileWriter.Setup(sfw => sfw.WriteText(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), null));
             MockSettingFileWriter.Setup(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null))
                 .Callback<DataTable, string, IStreamWriterFactory?>((dt, str, swf) => ActualDataTables.Add(dt.Copy()));
+            Mock<_File> MockFile = new Mock<_File>();
+            _File.Current = MockFile.Object;
             //update singleton
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             SettingFileReaderFieldInfo?.SetValue(null, MockSettingFileReader.Object);
@@ -243,7 +247,7 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
             MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContet(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
@@ -269,6 +273,8 @@ namespace Test.Methods
             MockSettingFileWriter.Setup(sfw => sfw.WriteText(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), null));
             MockSettingFileWriter.Setup(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null))
                 .Callback<DataTable, string, IStreamWriterFactory?>((dt, str, swf) => ActualDataTables.Add(dt.Copy()));
+            Mock<_File> MockFile = new Mock<_File>();
+            _File.Current = MockFile.Object;
             //update singleton
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             SettingFileReaderFieldInfo?.SetValue(null, MockSettingFileReader.Object);
@@ -330,7 +336,7 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
             MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContet(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
@@ -359,6 +365,8 @@ namespace Test.Methods
             MockSettingFileWriter.Setup(sfw => sfw.WriteText(It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<string>(), null));
             MockSettingFileWriter.Setup(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null))
                 .Callback<DataTable, string, IStreamWriterFactory?>((dt, str, swf) => ActualDataTables.Add(dt.Copy()));
+            Mock<_File> MockFile = new Mock<_File>();
+            _File.Current = MockFile.Object;
             //update singleton
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             SettingFileReaderFieldInfo?.SetValue(null, MockSettingFileReader.Object);

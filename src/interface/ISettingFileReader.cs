@@ -8,7 +8,7 @@ namespace CalcsheetGenerator.Interfaces
 
         public abstract List<ArtifactData> GetArtifactList(IStreamReaderFactory? _StreamReaderFactory=null);
 
-        public abstract string GetTextFileContet(string TextFilePath, IStreamReaderFactory? _StreamReaderFactory=null);
+        public abstract string GetTextFileContent(string TextFilePath, IStreamReaderFactory? _StreamReaderFactory=null);
     }
 
 }

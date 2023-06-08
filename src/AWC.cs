@@ -14,6 +14,7 @@ namespace CalcsheetGenerator
         private static IPreparation _Preparation = Preparation.GetInstance();
         private static ISettingFileReader _SettingFileReader = SettingFileReader.GetInstance();
         private static ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
+        private static IFileManager _FileManager = FileManager.GetInstance();
         private static IGcsimManager _GcsimManager = GcsimManager.GetInstance();
 
         public static void Main()
@@ -73,13 +74,13 @@ namespace CalcsheetGenerator
                             $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=4;" : //4セット混合
                             $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=2; {Environment.NewLine}{InitialSetting.CharacterName} add set=\"{Artifact.Name2}\" count=2;"; //2セット混合
 
+                        string TextFileContet = _SettingFileReader.GetTextFileContent(Config.Path.File.SimConfigText);
+                        string ReplacedContent = Primary.ReplaceText(TextFileContet,OldTextWeapon, NewTextWeapon);
                         if (isArtifactModeEnabled)//聖遺物モード
                         {
-                            ReplaceTextFile(Config.Path.File.SimConfigText, OldTextArtifact, NewTextArtifact);
+                            ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextArtifact, NewTextArtifact);
                         }
-
-                        //置き換えモード( //configファイル編集)
-                        ReplaceTextFile(Config.Path.File.SimConfigText, OldTextWeapon, NewTextWeapon);
+                        _SettingFileWriter.WriteText(Config.Path.File.TempSimConfigText, Append: false, ReplacedContent);
 
                         Debug.WriteLine("Replaced");
 
@@ -98,17 +99,6 @@ namespace CalcsheetGenerator
                         Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
 
                         OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefineRank, WeaponDps); //tableに結果を格納
-
-                        //クリーンアップモード(configファイルを元に戻す)
-                        ReplaceTextFile(Config.Path.File.SimConfigText, NewTextWeapon, OldTextWeapon);
-
-                        if (isArtifactModeEnabled)
-                        {
-                            ReplaceTextFile(Config.Path.File.SimConfigText, NewTextArtifact, OldTextArtifact);
-                        }
-
-                        Debug.WriteLine("Cleaned");
-
                     }
                     string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
                     _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directiry.Out + CSVFileName);
@@ -118,6 +108,9 @@ namespace CalcsheetGenerator
                         Console.WriteLine($"{Message.Notice.ProcessEnd}{Artifact.Name1} {Artifact.Name2}"); //終了メッセージ
                     }
                 }
+                // 一時ファイルの削除
+                _FileManager.DeleteFile(Config.Path.File.TempSimConfigText);
+                
             }
             catch (Exception ex)
             {
@@ -149,14 +142,6 @@ namespace CalcsheetGenerator
             }
             return string.Join(Environment.NewLine, WriteTextFileLines);
         }
-        
-        public static void ReplaceTextFile(string FileName, string OldText, string NewText) //txtファイルの内容を置き換える
-        {
-            string TextFileContet = _SettingFileReader.GetTextFileContet(FileName);
-            string ReplacedContent = Primary.ReplaceText(TextFileContet, OldText, NewText);
-            _SettingFileWriter.WriteText(FileName, false, ReplacedContent);
-        }
-
     }
     public class Preparation : IPreparation
     {
@@ -312,7 +297,7 @@ namespace CalcsheetGenerator
             return ArtifactList;
         }
 
-        public string GetTextFileContet(string TextFilePath, IStreamReaderFactory? _StreamReaderFactory=null)
+        public string GetTextFileContent(string TextFilePath, IStreamReaderFactory? _StreamReaderFactory=null)
         {
             using (StreamReader TextReader = (_StreamReaderFactory ?? new StreamReaderFactory()).Create(TextFilePath))
             {
@@ -340,7 +325,10 @@ namespace CalcsheetGenerator
 
         public void WriteText(string FilePath, bool Append, string TextContent, IStreamWriterFactory? StreamWriterFactory=null)
         {
-            using (IStreamWriter TextWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(FilePath, Append, Encoding.UTF8))
+            //BOM無しのUTF8でテキストファイルを作成する
+            Encoding UTF8WithoutBOM = new UTF8Encoding(false);
+
+            using (IStreamWriter TextWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(FilePath, Append, UTF8WithoutBOM))
             {
                 TextWriter.Write(TextContent);
             }
@@ -381,7 +369,7 @@ namespace CalcsheetGenerator
             IGcsimProcess SubstatOptimizationProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
             new[] {
                 Config.Path.File.GcSimWinExe, // 1回目にgcsimに渡す引数
-                $"-c={Config.Path.File.SimConfigText}",
+                $"-c={Config.Path.File.TempSimConfigText}",
                 "-substatOptim=true",
                 "-out=OptimizedConfig.txt"
             });
