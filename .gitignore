@@ -16,3 +16,7 @@ bin
 obj
 packages
 src/Properties/PublishProfiles/FolderProfile.pubxml
+resource/execBinary/gcsim.exe
+resource/input/config.txt
+resource/input/temp.txt
+resource/input/artifacts.csv
