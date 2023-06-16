@@ -107,9 +107,20 @@ namespace CalcsheetGenerator
                         Directory.CreateDirectory(Config.Path.Directory.Out);
                     }
 
-                    if (File.Exists(Config.Path.Directory.Out + CSVFileName)) //既に同名ファイルがあった場合消す
+                    if (File.Exists(Config.Path.Directory.Out + CSVFileName)) //既に同名ファイルがあった場合の処理
                     {
-                        _FileManager.DeleteFile(Config.Path.Directory.Out + CSVFileName);
+                        Console.WriteLine(Message.Notice.DuplicateCSV);
+                        switch (Console.ReadLine() ?? "")
+                        {
+                            case "y":
+                                _FileManager.DeleteFile(Config.Path.Directory.Out + CSVFileName);//yが選択された場合古い方を消す
+                                break;
+                            case "n":
+                                CSVFileName = CSVFileName + "_latest";//nが選択された場合リネームする
+                                break;
+                            default:
+                                throw new FormatException(Message.Error.DuplicateCSVError);
+                        }                       
                     }
 
                     _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);

@@ -29,6 +29,8 @@ namespace CalcsheetGenerator.Common
             public static readonly string SubstatOptimizationStart = "Substat optimization in progress...";
             // サブステの最適化gcshim起動一回目
             public static readonly string SubstatOptimizationEnd = "Substat optimization completed";
+
+            public static readonly string DuplicateCSV = "CSV Duplicate detected! do you want to delete older file?[y|n]:";
         }
 
         public static class Error
@@ -39,6 +41,8 @@ namespace CalcsheetGenerator.Common
             public static readonly string StartupAutomode = "Invalid Input at Automode Startup!";
             
             public static readonly string GcsimOutputNone = "ERROR: unrecognized weapon";
+
+            public static readonly string DuplicateCSVError = "Invalid Input at Duplicate Notice!";
 
         }
     }
