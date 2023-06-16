@@ -107,6 +107,11 @@ namespace CalcsheetGenerator
                         Directory.CreateDirectory(Config.Path.Directory.Out);
                     }
 
+                    if (File.Exists(Config.Path.Directory.Out + CSVFileName)) //既に同名ファイルがあった場合消す
+                    {
+                        _FileManager.DeleteFile(Config.Path.Directory.Out + CSVFileName);
+                    }
+
                     _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);
 
                     OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
