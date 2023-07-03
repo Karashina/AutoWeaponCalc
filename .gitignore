@@ -2,6 +2,11 @@
 .DS_Store
 /out
 
+#input file
+resource/execBinary
+resource/input/*.csv
+resource/input/*.txt
+
 # Visual Studio output
 .vs
 *.suo
@@ -12,6 +17,6 @@ obj
 packages
 src/Properties/PublishProfiles/FolderProfile.pubxml
 resource/execBinary/gcsim.exe
-resource/input/artifacts.csv
-resource/input/temp.txt
 resource/input/config.txt
+resource/input/temp.txt
+resource/input/artifacts.csv

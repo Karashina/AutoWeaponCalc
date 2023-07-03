@@ -1,0 +1,95 @@
+------------------------------------------
+sucrose contributed the following dps:
+        Astable Anemohypostasis Creation-6308 (1.24% of total, 8.71 average damage procs): avg 452.79 [min: 248.49 | max: 658.85] 
+        Forbidden Creation-Isomer 75/Type II (1.59% of total, 16.00 average damage procs): avg 581.64 [min: 337.46 | max: 725.42] 
+        Forbidden Creation-Isomer 75/Type II (Absorb) (0.40% of total, 16.00 average damage procs): avg 147.08 [min: 84.51 | max: 179.24] 
+        Normal 0 (0.67% of total, 35.43 average damage procs): avg 244.02 [min: 130.66 | max: 292.12] 
+        Normal 1 (0.61% of total, 34.69 average damage procs): avg 221.63 [min: 114.44 | max: 267.71] 
+        Normal 2 (0.59% of total, 26.64 average damage procs): avg 213.99 [min: 115.68 | max: 259.14] 
+        Normal 3 (0.49% of total, 17.86 average damage procs): avg 178.67 [min: 90.71 | max: 233.98] 
+        electrocharged (0.26% of total, 0.98 average damage procs): avg 94.97 [min: 78.84 | max: 475.86] 
+        swirl-electro (9.29% of total, 61.20 average damage procs): avg 3396.50 [min: 1696.00 | max: 3889.74] 
+        swirl-hydro (4.94% of total, 31.72 average damage procs): avg 1807.22 [min: 1014.87 | max: 2234.74] 
+sucrose total avg dps: 7338.51; total percentage: 20%
+xingqiu contributed the following dps:
+        Guhua Sword: Fatal Rainscreen (1.96% of total, 8.00 average damage procs): avg 717.65 [min: 362.06 | max: 992.77] 
+        Guhua Sword: Raincutter (12.64% of total, 206.14 average damage procs): avg 4619.52 [min: 1850.90 | max: 5150.31] 
+        Normal 0 (0.15% of total, 8.00 average damage procs): avg 56.45 [min: 29.53 | max: 75.40] 
+        Normal 1 (0.08% of total, 4.00 average damage procs): avg 28.96 [min: 13.53 | max: 38.53] 
+        Xingqiu Orbital (0.00% of total, 0.00 average damage procs): avg 0.00 [min: 0.00 | max: 0.00] 
+        electrocharged (4.68% of total, 36.73 average damage procs): avg 1710.42 [min: 585.62 | max: 2437.09] 
+xingqiu total avg dps: 7133.01; total percentage: 20%
+fischl contributed the following dps:
+        Fischl A4 (5.51% of total, 63.73 average damage procs): avg 2014.62 [min: 871.18 | max: 2600.77] 
+        Fischl C1 (0.01% of total, 1.64 average damage procs): avg 5.19 [min: 1.78 | max: 23.10] 
+        Fischl C6 (4.55% of total, 140.13 average damage procs): avg 1664.10 [min: 693.47 | max: 1970.43] 
+        Her Pilgrimage of Bleak (C4) (1.00% of total, 4.00 average damage procs): avg 364.57 [min: 168.84 | max: 467.62] 
+        Midnight Phantasmagoria (1.90% of total, 4.00 average damage procs): avg 693.68 [min: 259.37 | max: 885.42] 
+        Normal 0 (0.27% of total, 8.00 average damage procs): avg 98.52 [min: 53.69 | max: 123.84] 
+        Normal 1 (0.14% of total, 4.00 average damage procs): avg 51.92 [min: 20.39 | max: 65.52] 
+        Oz (Burst) (8.66% of total, 45.11 average damage procs): avg 3163.71 [min: 1648.32 | max: 3683.37] 
+        Oz (Skill) (9.22% of total, 47.92 average damage procs): avg 3371.25 [min: 1723.37 | max: 3944.90] 
+        Oz (Summon) (1.84% of total, 4.00 average damage procs): avg 670.96 [min: 257.16 | max: 837.23] 
+        electrocharged (10.86% of total, 58.00 average damage procs): avg 3969.45 [min: 1305.19 | max: 4702.97] 
+fischl total avg dps: 16067.98; total percentage: 44%
+beidou contributed the following dps:
+        Normal 0 (0.58% of total, 8.00 average damage procs): avg 211.22 [min: 112.64 | max: 264.16] 
+        Stormbreak Proc (Q) (10.14% of total, 37.43 average damage procs): avg 3704.21 [min: 1272.68 | max: 4645.27] 
+        Stormbreaker (Q) (1.23% of total, 4.00 average damage procs): avg 450.55 [min: 199.41 | max: 572.15] 
+        Tidecaller (E) (3.96% of total, 8.00 average damage procs): avg 1447.23 [min: 635.53 | max: 1821.36] 
+        electrocharged (0.53% of total, 3.62 average damage procs): avg 193.81 [min: 35.75 | max: 492.18] 
+beidou total avg dps: 6007.02; total percentage: 16%
+------------------------------------------
+Character ability usage:
+sucrose used the following abilities:
+        attack: avg 114.63 [min: 108 | max: 120]
+        burst: avg 4.00 [min: 4 | max: 4]
+        dash: avg 12.71 [min: 12 | max: 15]
+        skill: avg 8.71 [min: 8 | max: 11]
+        swap: avg 7.00 [min: 7 | max: 7]
+xingqiu used the following abilities:
+        attack: avg 12.00 [min: 12 | max: 12]
+        burst: avg 4.00 [min: 4 | max: 4]
+        dash: avg 4.00 [min: 4 | max: 4]
+        skill: avg 4.00 [min: 4 | max: 4]
+        swap: avg 4.00 [min: 4 | max: 4]
+fischl used the following abilities:
+        attack: avg 12.00 [min: 12 | max: 12]
+        burst: avg 4.00 [min: 4 | max: 4]
+        skill: avg 4.00 [min: 4 | max: 4]
+        swap: avg 8.00 [min: 8 | max: 8]
+beidou used the following abilities:
+        attack: avg 8.00 [min: 8 | max: 8]
+        burst: avg 4.00 [min: 4 | max: 4]
+        skill: avg 8.00 [min: 8 | max: 8]
+        swap: avg 8.00 [min: 8 | max: 8]
+------------------------------------------
+Character field time:
+sucrose on average active for 59% [min: 56% | max: 64%]
+xingqiu on average active for 15% [min: 10% | max: 36%]
+fischl on average active for 10% [min: 9% | max: 59%]
+beidou on average active for 17% [min: 16% | max: 47%]
+------------------------------------------
+Particle count:
+        beidou: avg 20.00 [min: 20 max: 20]
+        drop: avg 10.08 [min: 9 max: 18]
+        electro-res: avg 16.22 [min: 12 max: 18]
+        fischl: avg 61.53 [min: 44 max: 78]
+        sucrose: avg 34.17 [min: 28 max: 40]
+        xingqiu: avg 20.00 [min: 20 max: 20]
+------------------------------------------
+Reactions:
+        electrocharged: avg 246.71 [min: 155 max: 265]
+        swirl-electro: avg 61.35 [min: 52 max: 68]
+        swirl-hydro: avg 31.72 [min: 23 max: 38]
+------------------------------------------
+Element up time:
+        Target #1
+                hydro: avg 69.77% [min: 65.47% max: 86.86%]
+                electro: avg 89.91% [min: 83.63% max: 119.83%]
+------------------------------------------
+Damage by Target Omitted (Only 1 Target)
+------------------------------------------
+Average duration of 105.74 seconds (min: 101.63 max: 179.75 std: 6.18)
+Average 3849574.94 damage over 105.74 seconds, resulting in 36547 dps (min: 17224.24 max: 39800.40 std: 2612.43) 
+Simulation completed 1000 iterations in 1.071 seconds
