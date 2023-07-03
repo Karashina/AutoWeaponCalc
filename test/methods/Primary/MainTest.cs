@@ -90,7 +90,7 @@ namespace Test.Methods
 
             Primary.Main();
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directiry.Out + "WeaponDps_esof_4pc.csv", null),
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps_esof_4pc.csv", null),
                 Times.Once);
             //Columnsチェック
             List<string> ExpectEsofOutputCoulums = (List<string>)ExpectEsofOutputDataTable.Columns.Cast<DataColumn>()
@@ -114,7 +114,7 @@ namespace Test.Methods
                 Assert.All(expectRow, (expect, colIndex) => Assert.Equal(expect, ActualEsofOutputRows[rowIndex][colIndex]));
             }
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directiry.Out + "WeaponDps_gd_hod.csv", null),
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps_gd_hod.csv", null),
                 Times.Once);
             //Columnsチェック
             List<string> ExpectGdHodOutputCoulums = (List<string>)ExpectGdHodOutputDataTable.Columns.Cast<DataColumn>()
@@ -203,7 +203,7 @@ namespace Test.Methods
 
             Primary.Main();
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directiry.Out + "WeaponDps.csv", null),
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps.csv", null),
                 Times.Once);
             //Columnsチェック
             List<string> ExpectEsofOutputCoulums = (List<string>)ExpectEsofOutputDataTable.Columns.Cast<DataColumn>()
@@ -292,7 +292,7 @@ namespace Test.Methods
 
             Primary.Main();
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directiry.Out + "WeaponDps.csv", null),
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps.csv", null),
                 Times.Once);
             //Columnsチェック
             List<string> ExpectEsofOutputCoulums = (List<string>)ExpectEsofOutputDataTable.Columns.Cast<DataColumn>()
@@ -384,7 +384,7 @@ namespace Test.Methods
 
             Primary.Main();
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directiry.Out + "WeaponDps.csv", null),
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps.csv", null),
                 Times.Once);
             //Columnsチェック
             List<string> ExpectEsofOutputCoulums = (List<string>)ExpectEsofOutputDataTable.Columns.Cast<DataColumn>()
