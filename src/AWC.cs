@@ -1,11 +1,13 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Text;
-
+using System.Text.RegularExpressions;
+using System.Text.Json;
 using CalcsheetGenerator.Common;
 using CalcsheetGenerator.Enum;
 using CalcsheetGenerator.Interfaces;
 using CalcsheetGenerator.Module;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace CalcsheetGenerator
 {
@@ -39,7 +41,10 @@ namespace CalcsheetGenerator
                 //カラム名の追加
                 OutputDataTable.Columns.Add("武器名");
                 OutputDataTable.Columns.Add("精錬R");
-                OutputDataTable.Columns.Add("DPS");
+                OutputDataTable.Columns.Add("個人DPS");
+                OutputDataTable.Columns.Add("個人DPS_標準偏差");
+                OutputDataTable.Columns.Add("編成DPS");
+                OutputDataTable.Columns.Add("編成DPS_標準偏差");
 
                 IGcsim _Gcsim = _GcsimManager.CreateGcsimInstance();
 
@@ -84,10 +89,10 @@ namespace CalcsheetGenerator
 
                         Debug.WriteLine("Replaced");
 
-                        float WeaponDps = 0;
+                        string[] WeaponDpsParams = { "0", "0", "0", "0"};
                         try
                         {
-                            WeaponDps = GetWeaponDps(_Gcsim.Exec(), InitialSetting.CharacterName); //gcsim起動
+                            WeaponDpsParams = GetWeaponDps(_Gcsim.Exec(), InitialSetting.CharacterName); //gcsim起動
                         }
                         catch (Exception ge)
                         {
@@ -96,12 +101,12 @@ namespace CalcsheetGenerator
                             Console.WriteLine(ge.Message);
                         }
 
-                        Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
+                        Console.WriteLine(Weapon.NameInternal + "Char:" + WeaponDpsParams[0]); //Consoleに進捗出力
 
-                        OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefineRank, WeaponDps); //tableに結果を格納
+                        OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefineRank, WeaponDpsParams[0], WeaponDpsParams[1], WeaponDpsParams[2], WeaponDpsParams[3]); //tableに結果を格納
                     }
                     string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
-                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directiry.Out + CSVFileName);
+                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);
 
                     OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
                     if (isArtifactModeEnabled) {
@@ -119,17 +124,33 @@ namespace CalcsheetGenerator
             }
         }
 
-        public static float GetWeaponDps(string GcsimOutput, string CharacterName)
+        public static string[] GetWeaponDps(string GcsimOutput, string CharacterName)
         {
-            //DPS数値検索:頭
-            string Query1 = $"{CharacterName} total avg dps: ";
+            //gcsimの出力は数値の種別ごとに"[]"、キャラクターが"{}"、各項目が","で分けられている
+            //編成DPS数値の位置を検索:頭, 8を足しているのはクエリ自体を除外するため。
+            int PosTeamDPSSectionHead = GcsimOutput.IndexOf(", \"dps\":") + 8;
+            //編成DPS数値の位置を検索:足
+            int PosTeamDPSSectionTail = GcsimOutput.IndexOf(", \"rps\":");
+            //キャラクターDPS数値の位置を検索:頭, 19を足しているのはクエリ自体を除外するため。
+            int PosCharDPSSectionHead = GcsimOutput.IndexOf(", \"character_dps\":[") + 19;
+            //キャラクターDPS数値の位置を検索:足
+            int PosCharDPSSectionTail = GcsimOutput.IndexOf("], \"dps_by_element\"");
+            //{}で区切られたキャラごとのDPS値が取得できる
 
-            //DPS数値部分のみを切り出す
-            string WeaponDps = GcsimOutput.Substring(GcsimOutput.IndexOf(Query1)).Replace(Query1, "");
+            //DPS数値部分のみを切り出して配列にぶち込む
+            string[] TeamDPSarray = GcsimOutput.Substring(PosTeamDPSSectionHead).Remove(PosTeamDPSSectionTail).Split(',');
+            string[] CharDPSarray = GcsimOutput.Substring(PosCharDPSSectionHead).Remove(PosCharDPSSectionTail).Split(',');
 
-            //DPS数値検索:足
-            //floatに変換して返す
-            return float.Parse(WeaponDps.Substring(0, WeaponDps.IndexOf(";")));
+            string regexNumberMatch = "[0-9]+\\.[0-9]+";
+            //キャラの平均DPS:2,6,10,14 / 標準偏差:3,7,11,15
+            string CharacterDPS = Regex.Match(CharDPSarray[2], regexNumberMatch).Value;
+            string CharacterDPSstdev = Regex.Match(CharDPSarray[3], regexNumberMatch).Value;
+            string TeamDPS = Regex.Match(TeamDPSarray[2], regexNumberMatch).Value;
+            string TeamDPSstdev = Regex.Match(TeamDPSarray[3], regexNumberMatch).Value;
+
+            string[] WeaponDPSParams = { CharacterDPS, CharacterDPSstdev, TeamDPS, TeamDPSstdev };
+
+            return WeaponDPSParams;
         }
 
         public static string ReplaceText(string Content, string OldText, string NewText)
@@ -236,7 +257,7 @@ namespace CalcsheetGenerator
         public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReaderFactory? _StreamReaderFactory=null) //CSV読み込み（武器）
         {
             //ファイル名
-            string CsvPathWeapon = $"{Config.Path.Directiry.WeaponData}{InitialSetting.WeaponType}.csv";
+            string CsvPathWeapon = $"{Config.Path.Directory.WeaponData}{InitialSetting.WeaponType}.csv";
 
             //取得したデータを保存するリスト
             List<WeaponData> WeaponList = new List<WeaponData>();
@@ -391,15 +412,21 @@ namespace CalcsheetGenerator
             IGcsimProcess CalcDPSProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
             new[] {
                 Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
-                "-c=OptimizedConfig.txt"
+                "-c=OptimizedConfig.txt",
+                "-out=Output.json"
             });
 
             // プロセス起動2回目
             CalcDPSProcess.Start();
 
             // 標準出力を取得
-            string? CalcDPSProcessOutput = CalcDPSProcess.GetOuptput();
             CalcDPSProcess.WaitForExit();
+            string CalcDPSProcessOutput;
+
+            using (StreamReader sr = new StreamReader(Config.Path.File.OutputText, Encoding.GetEncoding("UTF-8")))
+            {
+                CalcDPSProcessOutput = sr.ReadToEnd();
+            }
 
             // 標準出力を表示
             Debug.WriteLine(CalcDPSProcessOutput);

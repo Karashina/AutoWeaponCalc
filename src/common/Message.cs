@@ -38,8 +38,7 @@ namespace CalcsheetGenerator.Common
             // 入力値不備
             public static readonly string StartupAutomode = "Invalid Input at Automode Startup!";
             
-            public static readonly string GcsimOutputNone = "ERROR: unrecognized weapon";
-
+            public static readonly string GcsimOutputNone = "ERROR: failed to output result!";
         }
     }
 }
