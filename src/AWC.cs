@@ -130,28 +130,28 @@ namespace CalcsheetGenerator
             string regexNameMatch = "\"name\":\"[A-Za-z]+\"";
             MatchCollection CharnameMatches = Regex.Matches(GcsimOutput, regexNameMatch);
 
-            int CharacterDPSPosition = 0;
-            int CharacterDPSstdevPosition = 0;
+            int CharacterDPSPosition = -1;
+            int CharacterDPSstdevPosition = -1;
             foreach (Match NameMatch in CharnameMatches)//キャラクター名の位置決め(configによって異なるため)
             {
                 if (NameMatch.Value == CharacterName)
                 {
                     switch (NameMatch.Index)
                     {
-                        //Index偶数は武器名になっている
-                        case 1:
+                        //Index奇数は武器名になっている
+                        case 0:
                             CharacterDPSPosition = 2;
                             CharacterDPSstdevPosition = 3;
                             break;
-                        case 3:
+                        case 2:
                             CharacterDPSPosition = 6;
                             CharacterDPSstdevPosition = 7;
                             break;
-                        case 5:
+                        case 4:
                             CharacterDPSPosition = 10;
                             CharacterDPSstdevPosition = 11;
                             break;
-                        case 7:
+                        case 6:
                             CharacterDPSPosition = 14;
                             CharacterDPSstdevPosition = 15;
                             break;
