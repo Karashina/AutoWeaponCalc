@@ -129,12 +129,13 @@ namespace CalcsheetGenerator
         {
             string regexNameMatch = "\"name\":\"[A-Za-z]+\"";
             MatchCollection CharnameMatches = Regex.Matches(GcsimOutput, regexNameMatch);
+            string CharacterNameQuery = "{\"name\":\"" + CharacterName + "\"}";
 
             int CharacterDPSPosition = -1;
             int CharacterDPSstdevPosition = -1;
             foreach (Match NameMatch in CharnameMatches)//キャラクター名の位置決め(configによって異なるため)
             {
-                if (NameMatch.Value == CharacterName)
+               if (NameMatch.Value == CharacterNameQuery)
                 {
                     switch (NameMatch.Index)
                     {
