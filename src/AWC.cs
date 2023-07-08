@@ -129,15 +129,16 @@ namespace CalcsheetGenerator
         {
             string regexNameMatch = "\"name\":\"[A-Za-z]+\"";
             MatchCollection CharnameMatches = Regex.Matches(GcsimOutput, regexNameMatch);
-            string CharacterNameQuery = "{\"name\":\"" + CharacterName + "\"}";
+            string CharacterNameQuery = "\"name\":\"" + CharacterName + "\"";
 
             int CharacterDPSPosition = -1;
             int CharacterDPSstdevPosition = -1;
+            int NameMatchCounter = 0;
             foreach (Match NameMatch in CharnameMatches)//キャラクター名の位置決め(configによって異なるため)
             {
                if (NameMatch.Value == CharacterNameQuery)
                 {
-                    switch (NameMatch.Index)
+                    switch (NameMatchCounter)
                     {
                         //Index奇数は武器名になっている
                         case 0:
@@ -160,6 +161,7 @@ namespace CalcsheetGenerator
                             throw new Exception(Message.Error.GcsimOutputNone);
                     }
                 }
+               NameMatchCounter++;
             }
 
             //編成DPS数値の位置を検索:頭, 8を足しているのはクエリ自体を除外するため。
