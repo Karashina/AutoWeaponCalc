@@ -8,6 +8,7 @@ using CalcsheetGenerator.Enum;
 using CalcsheetGenerator.Interfaces;
 using CalcsheetGenerator.Module;
 using static System.Net.Mime.MediaTypeNames;
+using System.Xml;
 
 namespace CalcsheetGenerator
 {
@@ -126,7 +127,39 @@ namespace CalcsheetGenerator
 
         public static string[] GetWeaponDps(string GcsimOutput, string CharacterName)
         {
-            //gcsimの出力は数値の種別ごとに"[]"、キャラクターが"{}"、各項目が","で分けられている
+            string regexNameMatch = "\"name\":\"[A-Za-z]+\"";
+            MatchCollection CharnameMatches = Regex.Matches(GcsimOutput, regexNameMatch);
+
+            int CharacterDPSIndex = 0;
+            int CharacterDPSstdIndex = 0;
+            foreach (Match NameMatch in CharnameMatches)
+            {
+                if (NameMatch.Value == CharacterName)
+                {
+                    switch (NameMatch.Index)
+                    {
+                        case 1:
+                            CharacterDPSIndex = 2;
+                            CharacterDPSstdIndex = 3;
+                            break;
+                        case 3:
+                            CharacterDPSIndex = 6;
+                            CharacterDPSstdIndex = 7;
+                            break;
+                        case 5:
+                            CharacterDPSIndex = 10;
+                            CharacterDPSstdIndex = 11;
+                            break;
+                        case 7:
+                            CharacterDPSIndex = 14;
+                            CharacterDPSstdIndex = 15;
+                            break;
+                        default:
+                            throw new Exception(Message.Error.GcsimOutputNone);
+                    }
+                }
+            }
+
             //編成DPS数値の位置を検索:頭, 8を足しているのはクエリ自体を除外するため。
             int PosTeamDPSSectionHead = GcsimOutput.IndexOf(", \"dps\":") + 8;
             //編成DPS数値の位置を検索:足
@@ -143,8 +176,8 @@ namespace CalcsheetGenerator
 
             string regexNumberMatch = "[0-9]+\\.[0-9]+";
             //キャラの平均DPS:2,6,10,14 / 標準偏差:3,7,11,15
-            string CharacterDPS = Regex.Match(CharDPSarray[2], regexNumberMatch).Value;
-            string CharacterDPSstdev = Regex.Match(CharDPSarray[3], regexNumberMatch).Value;
+            string CharacterDPS = Regex.Match(CharDPSarray[CharacterDPSIndex], regexNumberMatch).Value;
+            string CharacterDPSstdev = Regex.Match(CharDPSarray[CharacterDPSstdIndex], regexNumberMatch).Value;
             string TeamDPS = Regex.Match(TeamDPSarray[2], regexNumberMatch).Value;
             string TeamDPSstdev = Regex.Match(TeamDPSarray[3], regexNumberMatch).Value;
 
@@ -413,7 +446,7 @@ namespace CalcsheetGenerator
             new[] {
                 Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
                 "-c=OptimizedConfig.txt",
-                "-out=Output.json"
+                "-out=Output.txt"
             });
 
             // プロセス起動2回目
