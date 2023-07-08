@@ -130,29 +130,30 @@ namespace CalcsheetGenerator
             string regexNameMatch = "\"name\":\"[A-Za-z]+\"";
             MatchCollection CharnameMatches = Regex.Matches(GcsimOutput, regexNameMatch);
 
-            int CharacterDPSIndex = 0;
-            int CharacterDPSstdIndex = 0;
-            foreach (Match NameMatch in CharnameMatches)
+            int CharacterDPSPosition = 0;
+            int CharacterDPSstdevPosition = 0;
+            foreach (Match NameMatch in CharnameMatches)//キャラクター名の位置決め(configによって異なるため)
             {
                 if (NameMatch.Value == CharacterName)
                 {
                     switch (NameMatch.Index)
                     {
+                        //Index偶数は武器名になっている
                         case 1:
-                            CharacterDPSIndex = 2;
-                            CharacterDPSstdIndex = 3;
+                            CharacterDPSPosition = 2;
+                            CharacterDPSstdevPosition = 3;
                             break;
                         case 3:
-                            CharacterDPSIndex = 6;
-                            CharacterDPSstdIndex = 7;
+                            CharacterDPSPosition = 6;
+                            CharacterDPSstdevPosition = 7;
                             break;
                         case 5:
-                            CharacterDPSIndex = 10;
-                            CharacterDPSstdIndex = 11;
+                            CharacterDPSPosition = 10;
+                            CharacterDPSstdevPosition = 11;
                             break;
                         case 7:
-                            CharacterDPSIndex = 14;
-                            CharacterDPSstdIndex = 15;
+                            CharacterDPSPosition = 14;
+                            CharacterDPSstdevPosition = 15;
                             break;
                         default:
                             throw new Exception(Message.Error.GcsimOutputNone);
@@ -170,14 +171,14 @@ namespace CalcsheetGenerator
             int PosCharDPSSectionTail = GcsimOutput.IndexOf("], \"dps_by_element\"");
             //{}で区切られたキャラごとのDPS値が取得できる
 
-            //DPS数値部分のみを切り出して配列にぶち込む
+            //DPS数値部分のみをカンマ区切りで切り出して配列にぶち込む
             string[] TeamDPSarray = GcsimOutput.Substring(PosTeamDPSSectionHead).Remove(PosTeamDPSSectionTail).Split(',');
             string[] CharDPSarray = GcsimOutput.Substring(PosCharDPSSectionHead).Remove(PosCharDPSSectionTail).Split(',');
 
             string regexNumberMatch = "[0-9]+\\.[0-9]+";
-            //キャラの平均DPS:2,6,10,14 / 標準偏差:3,7,11,15
-            string CharacterDPS = Regex.Match(CharDPSarray[CharacterDPSIndex], regexNumberMatch).Value;
-            string CharacterDPSstdev = Regex.Match(CharDPSarray[CharacterDPSstdIndex], regexNumberMatch).Value;
+            //配列の中の位置から必要な数値を持ってきてregexで数字だけ切り出す
+            string CharacterDPS = Regex.Match(CharDPSarray[CharacterDPSPosition], regexNumberMatch).Value;
+            string CharacterDPSstdev = Regex.Match(CharDPSarray[CharacterDPSstdevPosition], regexNumberMatch).Value;
             string TeamDPS = Regex.Match(TeamDPSarray[2], regexNumberMatch).Value;
             string TeamDPSstdev = Regex.Match(TeamDPSarray[3], regexNumberMatch).Value;
 
