@@ -131,8 +131,8 @@ namespace CalcsheetGenerator
             MatchCollection CharnameMatches = Regex.Matches(GcsimOutput, regexNameMatch);
             string CharacterNameQuery = "\"name\":\"" + CharacterName + "\"";
 
-            int CharacterDPSPosition = -1;
-            int CharacterDPSstdevPosition = -1;
+            int CharacterDPSPosition = 0;
+            int CharacterDPSstdevPosition = 0;
             int NameMatchCounter = 0;
             foreach (Match NameMatch in CharnameMatches)//キャラクター名の位置決め(configによって異なるため)
             {
@@ -164,14 +164,14 @@ namespace CalcsheetGenerator
                NameMatchCounter++;
             }
 
-            //編成DPS数値の位置を検索:頭, 8を足しているのはクエリ自体を除外するため。
-            int PosTeamDPSSectionHead = GcsimOutput.IndexOf(", \"dps\":") + 8;
-            //編成DPS数値の位置を検索:足
-            int PosTeamDPSSectionTail = GcsimOutput.IndexOf(", \"rps\":");
+            //編成DPS数値の位置を検索:頭, 6を足しているのはクエリ自体を除外するため。
+            int PosTeamDPSSectionHead = GcsimOutput.IndexOf("dps") + 6;
+            //編成DPS数値の位置を検索:足, なぜか探してきてくれなくなったので1500文字持ってくる仕様に変更
+            int PosTeamDPSSectionTail = PosTeamDPSSectionHead + 1500;
             //キャラクターDPS数値の位置を検索:頭, 19を足しているのはクエリ自体を除外するため。
-            int PosCharDPSSectionHead = GcsimOutput.IndexOf(", \"character_dps\":[") + 19;
-            //キャラクターDPS数値の位置を検索:足
-            int PosCharDPSSectionTail = GcsimOutput.IndexOf("], \"dps_by_element\"");
+            int PosCharDPSSectionHead = GcsimOutput.IndexOf("character_dps") + 17;
+            //キャラクターDPS数値の位置を検索:足, なぜか探してきてくれなくなったので1500文字持ってくる仕様に変更
+            int PosCharDPSSectionTail = PosCharDPSSectionHead + 1500;
             //{}で区切られたキャラごとのDPS値が取得できる
 
             //DPS数値部分のみをカンマ区切りで切り出して配列にぶち込む
