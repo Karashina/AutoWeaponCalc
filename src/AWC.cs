@@ -101,7 +101,29 @@ namespace CalcsheetGenerator
                         OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefineRank, WeaponDps); //tableに結果を格納
                     }
                     string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
-                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directiry.Out + CSVFileName);
+
+                    if (Directory.Exists(Config.Path.Directory.Out) == false) //出力ディレクトリがなかったら作る
+                    {
+                        Directory.CreateDirectory(Config.Path.Directory.Out);
+                    }
+
+                    if (File.Exists(Config.Path.Directory.Out + CSVFileName)) //既に同名ファイルがあった場合の処理
+                    {
+                        Console.WriteLine(Message.Notice.DuplicateCSV);
+                        switch (Console.ReadLine() ?? "")
+                        {
+                            case "y":
+                                _FileManager.DeleteFile(Config.Path.Directory.Out + CSVFileName);//yが選択された場合古い方を消す
+                                break;
+                            case "n":
+                                CSVFileName = CSVFileName + "_latest";//nが選択された場合リネームする
+                                break;
+                            default:
+                                throw new FormatException(Message.Error.DuplicateCSVError);
+                        }                       
+                    }
+
+                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);
 
                     OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
                     if (isArtifactModeEnabled) {
@@ -236,7 +258,7 @@ namespace CalcsheetGenerator
         public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReaderFactory? _StreamReaderFactory=null) //CSV読み込み（武器）
         {
             //ファイル名
-            string CsvPathWeapon = $"{Config.Path.Directiry.WeaponData}{InitialSetting.WeaponType}.csv";
+            string CsvPathWeapon = $"{Config.Path.Directory.WeaponData}{InitialSetting.WeaponType}.csv";
 
             //取得したデータを保存するリスト
             List<WeaponData> WeaponList = new List<WeaponData>();
