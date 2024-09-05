@@ -4,6 +4,7 @@ namespace CalcsheetGenerator.Enum
     {
         None = 0,
         Auto = 1,
-        Manual = 2
+        Manual = 2,
+        Noartifact = 3
     }
 }

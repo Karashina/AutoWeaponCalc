@@ -33,6 +33,15 @@ namespace CalcsheetGenerator
                     throw new FormatException(Message.Error.StartupAutomode);
                 }
 
+                string WeaponType = "nil";
+                List<CharData> CharList = _SettingFileReader.GetCharList();
+                foreach (CharData Char in CharList)
+                    {
+                        if (Char.CharName == InitialSetting.CharacterName) {
+                            WeaponType = Char.WeaponHolding;
+                        }
+                    }
+
                 //最後に出力する表を作成
                 DataTable OutputDataTable = new DataTable("Table");
 
@@ -55,10 +64,24 @@ namespace CalcsheetGenerator
                     if (isArtifactModeEnabled) {
                         Console.WriteLine($"{Message.Notice.ProcessStart}{Artifact.Name1} {Artifact.Name2}"); //開始メッセージ
                     }
-                    List<WeaponData> WeaponList = _SettingFileReader.GetWeaponList(InitialSetting);
+                    List<WeaponData> WeaponList = _SettingFileReader.GetWeaponList(WeaponType, InitialSetting);
                     
                     foreach (WeaponData Weapon in WeaponList)
                     {
+                        int rmax = 1;
+                        if (InitialSetting.MainstatSel == "y") {
+                            rmax = 2;
+                        }
+   
+                        for(int r = 1; r <= rmax; r++)
+                        {
+                            string OldTextCrit = "<crit>";
+                            string NewTextCrit = "cr=0.311";
+                            string CritSuffix = "(CR)";
+                            if (r == 2) {
+                                NewTextCrit = "cd=0.622";
+                                CritSuffix = "(CD)";
+                            }
                         string WeaponRefineRank = InitialSetting.WeaponRefineRank;
                         //rarityに応じた自動精錬ランク設定
                         if (InitialSetting.WeaponRefineRank == "0")
@@ -80,6 +103,9 @@ namespace CalcsheetGenerator
                         {
                             ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextArtifact, NewTextArtifact);
                         }
+                        if (InitialSetting.MainstatSel == "y") {
+                            ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextCrit, NewTextCrit);
+                        }
                         _SettingFileWriter.WriteText(Config.Path.File.TempSimConfigText, Append: false, ReplacedContent);
 
                         Debug.WriteLine("Replaced");
@@ -98,7 +124,9 @@ namespace CalcsheetGenerator
 
                         Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
 
-                        OutputDataTable.Rows.Add(Weapon.NameJapanese, WeaponRefineRank, WeaponDps); //tableに結果を格納
+                        OutputDataTable.Rows.Add(Weapon.NameJapanese + CritSuffix, WeaponRefineRank, WeaponDps); //tableに結果を格納
+
+                        }
                     }
                     string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
 
@@ -198,26 +226,34 @@ namespace CalcsheetGenerator
                 case "m":
                     this._Mode = Mode.Manual;
                     break;
+                case "n":
+                    this._Mode = Mode.Noartifact;
+                    break;
                 default:
                     throw new FormatException(Message.Error.SelectMode);
             }
         }
 
-        public UserInput Startup()//manualモード
+        public UserInput Startup()
         {
             if (Mode.None.Equals(this._Mode)){
                 throw new Exception(Message.Error.SelectMode);
             }
+            //autoモード
             string WeaponRefinerank = "0";
             string ArtifactModeSel = "y";
+            string MainstatSel = "y";
 
             //キャラ名指定
-            Console.WriteLine(Message.Notice.SelectCharctor);
+            Console.WriteLine(Message.Notice.SelectCharcter);
             string CharacterName = Console.ReadLine() ?? "";
 
-            //武器種指定
-            Console.WriteLine(Message.Notice.SelectWeapon);
-            string WeaponType = Console.ReadLine() ?? "";
+            string WeaponType = "this variable is no longer used";
+
+            if (Mode.Noartifact.Equals(this._Mode))
+            {
+                ArtifactModeSel = "n";
+            }
 
             if (Mode.Manual.Equals(this._Mode))
             {
@@ -228,14 +264,19 @@ namespace CalcsheetGenerator
                 //聖遺物モード切替
                 Console.WriteLine(Message.Notice.SelectArtifactOptimization);
                 ArtifactModeSel = Console.ReadLine() ?? "";
+
+                //聖遺物モード切替
+                Console.WriteLine(Message.Notice.SelectMainstat);
+                MainstatSel = Console.ReadLine() ?? "";
             }
 
-            return new UserInput(CharacterName, WeaponType, WeaponRefinerank, ArtifactModeSel);
+            return new UserInput(CharacterName, WeaponType, WeaponRefinerank, ArtifactModeSel, MainstatSel);
         }
     }
 
     //データを格納するレコード
     public record WeaponData(string NameJapanese, string NameInternal, string Rarity);
+    public record CharData(string CharName, string WeaponHolding);
     public record ArtifactData(string PiecesCheck, string Name1, string Name2);
     public class SettingFileReader : ISettingFileReader
     {
@@ -254,11 +295,39 @@ namespace CalcsheetGenerator
             }
             return SettingFileReader.Instance;
         }
-
-        public List<WeaponData> GetWeaponList(UserInput InitialSetting, IStreamReaderFactory? _StreamReaderFactory=null) //CSV読み込み（武器）
+        public List<CharData> GetCharList(IStreamReaderFactory? _StreamReaderFactory=null) //CSV読み込み（キャラ）
         {
             //ファイル名
-            string CsvPathWeapon = $"{Config.Path.Directory.WeaponData}{InitialSetting.WeaponType}.csv";
+            string CsvPathChar = $"{Config.Path.Directory.CharData}character.csv";
+
+            //取得したデータを保存するリスト
+            List<CharData> CharList = new List<CharData>();
+
+            //CSV読み込み部分
+            using (StreamReader CharCsvReader = (_StreamReaderFactory ?? new StreamReaderFactory()).Create(CsvPathChar))
+            {
+                while (0 <= CharCsvReader.Peek())
+                {
+                    //カンマ区切りで分割して配列で格納する
+                    string[]? Column = CharCsvReader.ReadLine()?.Split(',');
+                    if (Column is null) continue;
+
+                    //リストにデータを追加する
+                    CharList.Add(new CharData(Column[0], Column[1]));
+                }
+            }
+
+            //先頭行は項目名なのでスキップする(CSVのヘッダ)
+            if (0 < CharList.Count())
+            {
+                CharList.RemoveAt(0); 
+            }
+            return CharList;
+        }
+        public List<WeaponData> GetWeaponList(string Weapontype, UserInput InitialSetting, IStreamReaderFactory? _StreamReaderFactory=null) //CSV読み込み（武器）
+        {
+            //ファイル名
+            string CsvPathWeapon = $"{Config.Path.Directory.WeaponData}{Weapontype}.csv";
 
             //取得したデータを保存するリスト
             List<WeaponData> WeaponList = new List<WeaponData>();
