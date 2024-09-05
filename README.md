@@ -30,17 +30,14 @@
 
 1. run.batで起動
 
-1. `mode selection(auto / manual) [ a | m ]`　<br>
+1. `mode selection([a]uto / [n]oartifact / [m]anual ) :`　<br>
 モード設定です　<br>
-autoに設定するとこのあとの7と8にそれぞれ`0`と`y`を入れて飛ばします　<br>
+"a"に設定するとこのあとの7に`0`を、8と9にそれぞれ`y`と`y`を入れて飛ばします　<br>
+"n"に設定するとこのあとの7に`0`を、8と9にそれぞれ`n`と`y`を入れて飛ばします　<br>
 
 1. `Type the name of the character to calculate:`　<br>
 計算したいキャラクターの名前を入力してください　<br>
 キャラ名はconfigファイルに記載のある通りに入力してください　<br>
-
-1. `Type the weapon type of the character to calculate [sword|claymore|bow|catalyst|polearm] :`　<br>
-キャラクターの武器種を設定してください(ここ手動ですごめんなさい)　<br>
-武器csvファイルの名前を指定しているだけなので別にcsvを用意して同じディレクトリにぶち込めば>カスタム武器リストをつくれます　<br>
 
 1. `Type the refinement rank of the weapon to calculate [0=auto][1-5] :`　<br>
 武器の精錬ランクを設定してください　<br>
@@ -50,6 +47,11 @@ autoに設定するとこのあとの7と8にそれぞれ`0`と`y`を入れて�
 1. `Do you want to use artifact mode? [y|n]:`　<br>
 聖遺物モードを使用するかの選択肢です　<br>
 使用する場合`artifacts.csv`に書かれている聖遺物を上から使ってそれぞれの武器DPSを計算します　<br>
+
+1. `Do you want to use cr/cd switch mode? [y|n]:`　<br>
+冠自動変更モードを使用するかの選択肢です　<br>
+使用する場合アクションリスト内で会心冠のステータスを記述する位置に`<crit>`と記述しておけば、　<br>
+自動的に会心率冠、会心ダメージ冠の両方を使った場合のDPSが計算されます　<br>
 
 ## 🗂️　構成ファイル説明
 ### 📝　構成ディレクトリ・ファイル一覧
@@ -110,6 +112,8 @@ autoに設定するとこのあとの7と8にそれぞれ`0`と`y`を入れて�
 │       ├── claymore.csv
 │       ├── polearm.csv
 │       └── sword.csv
+│   └── chatracterData
+│       └── character.csv
 ├── src 
 │   ├── AWC.cs 
 │   ├── AutoWeaponCalc.csproj
