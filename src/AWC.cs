@@ -1,11 +1,14 @@
 ﻿using System.Data;
 using System.Diagnostics;
 using System.Text;
-
+using System.Text.RegularExpressions;
+using System.Text.Json;
 using CalcsheetGenerator.Common;
 using CalcsheetGenerator.Enum;
 using CalcsheetGenerator.Interfaces;
 using CalcsheetGenerator.Module;
+using static System.Net.Mime.MediaTypeNames;
+using System.Xml;
 
 namespace CalcsheetGenerator
 {
@@ -48,7 +51,10 @@ namespace CalcsheetGenerator
                 //カラム名の追加
                 OutputDataTable.Columns.Add("武器名");
                 OutputDataTable.Columns.Add("精錬R");
-                OutputDataTable.Columns.Add("DPS");
+                OutputDataTable.Columns.Add("個人DPS");
+                OutputDataTable.Columns.Add("個人DPS_標準偏差");
+                OutputDataTable.Columns.Add("編成DPS");
+                OutputDataTable.Columns.Add("編成DPS_標準偏差");
 
                 IGcsim _Gcsim = _GcsimManager.CreateGcsimInstance();
 
@@ -82,85 +88,67 @@ namespace CalcsheetGenerator
                                 NewTextCrit = "cd=0.622";
                                 CritSuffix = "(CD)";
                             }
-                        string WeaponRefineRank = InitialSetting.WeaponRefineRank;
-                        //rarityに応じた自動精錬ランク設定
-                        if (InitialSetting.WeaponRefineRank == "0")
+                            string WeaponRefineRank = InitialSetting.WeaponRefineRank;
+                            //rarityに応じた自動精錬ランク設定
+                            if (InitialSetting.WeaponRefineRank == "0")
+                            {
+                                WeaponRefineRank = Weapon.Rarity == "1" ? WeaponRefineRank = "1" : WeaponRefineRank = "5"; // 星5なら精錬ランク1 星4なら精錬ランク5に置き換え
+                            }
+
+                            string OldTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"<w>\" refine=<r>";
+                            string NewTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"{Weapon.NameInternal}\" refine={WeaponRefineRank}";
+
+                            string OldTextArtifact = $"{InitialSetting.CharacterName} add set=\"<a>\" count=<p>;";//置き換え前の文章（聖遺物）
+                            string NewTextArtifact = ArtifactPieces._4pc.Equals(Artifact.PiecesCheck) ? //置き換え後の文章（聖遺物）
+                                $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=4;" : //4セット混合
+                                $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=2; {Environment.NewLine}{InitialSetting.CharacterName} add set=\"{Artifact.Name2}\" count=2;"; //2セット混合
+
+                            string TextFileContet = _SettingFileReader.GetTextFileContent(Config.Path.File.SimConfigText);
+                            string ReplacedContent = Primary.ReplaceText(TextFileContet,OldTextWeapon, NewTextWeapon);
+                            if (isArtifactModeEnabled)//聖遺物モード
+                            {
+                                ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextArtifact, NewTextArtifact);
+                            }
+                            if (InitialSetting.MainstatSel == "y") {
+                                ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextCrit, NewTextCrit);
+                            }
+                            _SettingFileWriter.WriteText(Config.Path.File.TempSimConfigText, Append: false, ReplacedContent);
+
+                            Debug.WriteLine("Replaced");
+
+                            string[] WeaponDpsParams = { "0", "0", "0", "0"};
+                            try
+                            {
+                                WeaponDpsParams = GetWeaponDps(_Gcsim.Exec(), InitialSetting.CharacterName); //gcsim起動
+                            }
+                            catch (Exception ge)
+                            {
+                                // Gcsimでの計算ができなかった場合、処理を継続させるためにエラーを出力
+                                // DPSは0とする
+                                Console.WriteLine(ge.Message);
+                            }
+
+                            Console.WriteLine(Weapon.NameInternal + CritSuffix + "Char DPS:" + WeaponDpsParams[0]); //Consoleに進捗出力
+
+                            OutputDataTable.Rows.Add(Weapon.NameJapanese + CritSuffix, WeaponRefineRank, WeaponDpsParams[0], WeaponDpsParams[1], WeaponDpsParams[2], WeaponDpsParams[3]); //tableに結果を格納
+                        }
+                        string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
+
+                        if (Directory.Exists(Config.Path.Directory.Out) == false) //出力ディレクトリがなかったら作る
                         {
-                            WeaponRefineRank = Weapon.Rarity == "1" ? WeaponRefineRank = "1" : WeaponRefineRank = "5"; // 星5なら精錬ランク1 星4なら精錬ランク5に置き換え
+                            Directory.CreateDirectory(Config.Path.Directory.Out);
                         }
 
-                        string OldTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"<w>\" refine=<r>";
-                        string NewTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"{Weapon.NameInternal}\" refine={WeaponRefineRank}";
+                        _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);
 
-                        string OldTextArtifact = $"{InitialSetting.CharacterName} add set=\"<a>\" count=<p>;";//置き換え前の文章（聖遺物）
-                        string NewTextArtifact = ArtifactPieces._4pc.Equals(Artifact.PiecesCheck) ? //置き換え後の文章（聖遺物）
-                            $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=4;" : //4セット混合
-                            $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=2; {Environment.NewLine}{InitialSetting.CharacterName} add set=\"{Artifact.Name2}\" count=2;"; //2セット混合
-
-                        string TextFileContet = _SettingFileReader.GetTextFileContent(Config.Path.File.SimConfigText);
-                        string ReplacedContent = Primary.ReplaceText(TextFileContet,OldTextWeapon, NewTextWeapon);
-                        if (isArtifactModeEnabled)//聖遺物モード
-                        {
-                            ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextArtifact, NewTextArtifact);
-                        }
-                        if (InitialSetting.MainstatSel == "y") {
-                            ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextCrit, NewTextCrit);
-                        }
-                        _SettingFileWriter.WriteText(Config.Path.File.TempSimConfigText, Append: false, ReplacedContent);
-
-                        Debug.WriteLine("Replaced");
-
-                        float WeaponDps = 0;
-                        try
-                        {
-                            WeaponDps = GetWeaponDps(_Gcsim.Exec(), InitialSetting.CharacterName); //gcsim起動
-                        }
-                        catch (Exception ge)
-                        {
-                            // Gcsimでの計算ができなかった場合、処理を継続させるためにエラーを出力
-                            // DPSは0とする
-                            Console.WriteLine(ge.Message);
-                        }
-
-                        Console.WriteLine(Weapon.NameInternal + ":" + WeaponDps); //Consoleに進捗出力
-
-                        OutputDataTable.Rows.Add(Weapon.NameJapanese + CritSuffix, WeaponRefineRank, WeaponDps); //tableに結果を格納
-
+                        OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
+                        if (isArtifactModeEnabled) {
+                            Console.WriteLine($"{Message.Notice.ProcessEnd}{Artifact.Name1} {Artifact.Name2}"); //終了メッセージ
                         }
                     }
-                    string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
-
-                    if (Directory.Exists(Config.Path.Directory.Out) == false) //出力ディレクトリがなかったら作る
-                    {
-                        Directory.CreateDirectory(Config.Path.Directory.Out);
-                    }
-
-                    if (File.Exists(Config.Path.Directory.Out + CSVFileName)) //既に同名ファイルがあった場合の処理
-                    {
-                        Console.WriteLine(Message.Notice.DuplicateCSV);
-                        switch (Console.ReadLine() ?? "")
-                        {
-                            case "y":
-                                _FileManager.DeleteFile(Config.Path.Directory.Out + CSVFileName);//yが選択された場合古い方を消す
-                                break;
-                            case "n":
-                                CSVFileName = CSVFileName + "_latest";//nが選択された場合リネームする
-                                break;
-                            default:
-                                throw new FormatException(Message.Error.DuplicateCSVError);
-                        }                       
-                    }
-
-                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);
-
-                    OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
-                    if (isArtifactModeEnabled) {
-                        Console.WriteLine($"{Message.Notice.ProcessEnd}{Artifact.Name1} {Artifact.Name2}"); //終了メッセージ
-                    }
+                    // 一時ファイルの削除
+                    _FileManager.DeleteFile(Config.Path.File.TempSimConfigText);
                 }
-                // 一時ファイルの削除
-                _FileManager.DeleteFile(Config.Path.File.TempSimConfigText);
-                
             }
             catch (Exception ex)
             {
@@ -169,17 +157,69 @@ namespace CalcsheetGenerator
             }
         }
 
-        public static float GetWeaponDps(string GcsimOutput, string CharacterName)
+        public static string[] GetWeaponDps(string GcsimOutput, string CharacterName)
         {
-            //DPS数値検索:頭
-            string Query1 = $"{CharacterName} total avg dps: ";
+            string regexNameMatch = "\"name\":\"[A-Za-z]+\"";
+            MatchCollection CharnameMatches = Regex.Matches(GcsimOutput, regexNameMatch);
+            string CharacterNameQuery = "\"name\":\"" + CharacterName + "\"";
 
-            //DPS数値部分のみを切り出す
-            string WeaponDps = GcsimOutput.Substring(GcsimOutput.IndexOf(Query1)).Replace(Query1, "");
+            int CharacterDPSPosition = 0;
+            int CharacterDPSstdevPosition = 0;
+            int NameMatchCounter = 0;
+            foreach (Match NameMatch in CharnameMatches)//キャラクター名の位置決め(configによって異なるため)
+            {
+               if (NameMatch.Value == CharacterNameQuery)
+                {
+                    switch (NameMatchCounter)
+                    {
+                        //Index奇数は武器名になっている
+                        case 0:
+                            CharacterDPSPosition = 2;
+                            CharacterDPSstdevPosition = 3;
+                            break;
+                        case 2:
+                            CharacterDPSPosition = 6;
+                            CharacterDPSstdevPosition = 7;
+                            break;
+                        case 4:
+                            CharacterDPSPosition = 10;
+                            CharacterDPSstdevPosition = 11;
+                            break;
+                        case 6:
+                            CharacterDPSPosition = 14;
+                            CharacterDPSstdevPosition = 15;
+                            break;
+                        default:
+                            throw new Exception(Message.Error.GcsimOutputNone);
+                    }
+                }
+               NameMatchCounter++;
+            }
 
-            //DPS数値検索:足
-            //floatに変換して返す
-            return float.Parse(WeaponDps.Substring(0, WeaponDps.IndexOf(";")));
+            //編成DPS数値の位置を検索:頭, 6を足しているのはクエリ自体を除外するため。
+            int PosTeamDPSSectionHead = GcsimOutput.IndexOf("dps") + 6;
+            //編成DPS数値の位置を検索:足, なぜか探してきてくれなくなったので1500文字持ってくる仕様に変更
+            int PosTeamDPSSectionTail = PosTeamDPSSectionHead + 1500;
+            //キャラクターDPS数値の位置を検索:頭, 19を足しているのはクエリ自体を除外するため。
+            int PosCharDPSSectionHead = GcsimOutput.IndexOf("character_dps") + 17;
+            //キャラクターDPS数値の位置を検索:足, なぜか探してきてくれなくなったので1500文字持ってくる仕様に変更
+            int PosCharDPSSectionTail = PosCharDPSSectionHead + 1500;
+            //{}で区切られたキャラごとのDPS値が取得できる
+
+            //DPS数値部分のみをカンマ区切りで切り出して配列にぶち込む
+            string[] TeamDPSarray = GcsimOutput.Substring(PosTeamDPSSectionHead).Remove(PosTeamDPSSectionTail).Split(',');
+            string[] CharDPSarray = GcsimOutput.Substring(PosCharDPSSectionHead).Remove(PosCharDPSSectionTail).Split(',');
+
+            string regexNumberMatch = "[0-9]+\\.[0-9]+";
+            //配列の中の位置から必要な数値を持ってきてregexで数字だけ切り出す
+            string CharacterDPS = Regex.Match(CharDPSarray[CharacterDPSPosition], regexNumberMatch).Value;
+            string CharacterDPSstdev = Regex.Match(CharDPSarray[CharacterDPSstdevPosition], regexNumberMatch).Value;
+            string TeamDPS = Regex.Match(TeamDPSarray[2], regexNumberMatch).Value;
+            string TeamDPSstdev = Regex.Match(TeamDPSarray[3], regexNumberMatch).Value;
+
+            string[] WeaponDPSParams = { CharacterDPS, CharacterDPSstdev, TeamDPS, TeamDPSstdev };
+
+            return WeaponDPSParams;
         }
 
         public static string ReplaceText(string Content, string OldText, string NewText)
@@ -239,7 +279,7 @@ namespace CalcsheetGenerator
             if (Mode.None.Equals(this._Mode)){
                 throw new Exception(Message.Error.SelectMode);
             }
-            //autoモード
+
             string WeaponRefinerank = "0";
             string ArtifactModeSel = "y";
             string MainstatSel = "y";
@@ -265,7 +305,7 @@ namespace CalcsheetGenerator
                 Console.WriteLine(Message.Notice.SelectArtifactOptimization);
                 ArtifactModeSel = Console.ReadLine() ?? "";
 
-                //聖遺物モード切替
+                //会心モード切替
                 Console.WriteLine(Message.Notice.SelectMainstat);
                 MainstatSel = Console.ReadLine() ?? "";
             }
@@ -482,15 +522,21 @@ namespace CalcsheetGenerator
             IGcsimProcess CalcDPSProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
             new[] {
                 Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
-                "-c=OptimizedConfig.txt"
+                "-c=OptimizedConfig.txt",
+                $"-out={Config.Path.File.OutputText}"
             });
 
             // プロセス起動2回目
             CalcDPSProcess.Start();
 
             // 標準出力を取得
-            string? CalcDPSProcessOutput = CalcDPSProcess.GetOuptput();
             CalcDPSProcess.WaitForExit();
+            string CalcDPSProcessOutput;
+
+            using (StreamReader sr = new StreamReader(Config.Path.File.OutputText, Encoding.GetEncoding("UTF-8")))
+            {
+                CalcDPSProcessOutput = sr.ReadToEnd();
+            }
 
             // 標準出力を表示
             Debug.WriteLine(CalcDPSProcessOutput);
