@@ -3,7 +3,7 @@ albedo,sword
 alhaitham,sword
 aloy,bow
 amber,bow
-arataki itto,claymore
+itto,claymore
 arlecchino,polearm
 baizhu,catalyst
 barbara,catalyst
@@ -30,13 +30,13 @@ furina,sword
 gaming,claymore
 ganyu,bow
 gorou,bow
-hu tao,polearm
+hutao,polearm
 jean,sword
 kachina,polearm
-kaedehara kazuha,sword
+kazuha,sword
 kaeya,sword
-kamisato ayaka,sword
-kamisato ayato,sword
+ayaka,sword
+ayato,sword
 kaveh,claymore
 keqing,sword
 kirara,sword
@@ -57,20 +57,24 @@ nilou,sword
 ningguang,catalyst
 noelle,claymore
 qiqi,sword
-raiden shogun,polearm
+raiden,polearm
 razor,claymore
 rosaria,polearm
-sangonomiya kokomi,catalyst
+kokomi,catalyst
 sayu,claymore
 sethos,bow
 shenhe,polearm
-shikanoin heizou,catalyst
+heizou,catalyst
 sigewinne,bow
 sucrose,catalyst
 tartaglia,bow
 thoma,polearm
 tighnari,bow
-traveler,sword
+traveleranemo,sword
+travelergeo,sword
+travelerdendro,sword
+travelerhydro,sword
+travelerpyro,sword
 venti,bow
 wanderer,catalyst
 wriothesley,catalyst
@@ -79,10 +83,10 @@ xianyun,catalyst
 xiao,polearm
 xingqiu,sword
 xinyan,claymore
-yae miko,catalyst
+yaemiko,catalyst
 yanfei,catalyst
 yaoyao,polearm
 yelan,bow
 yoimiya,bow
-yun jin,polearm
+yunjin,polearm
 zhongli,polearm
