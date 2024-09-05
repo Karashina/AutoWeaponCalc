@@ -1,11 +1,13 @@
 ﻿weapontype,weaponname,rarity
 草薙の稲光,engulfinglightning,1
 天空の脊,skywardspine,1
-和璞鳶,primordialjadewinged-spear,1
+和璞鳶,pjws,1
 息災,calamityqueller,1
 護摩の杖,staffofhoma,1
 破天の槍,vortexvanquisher,1
 赤砂の杖,staffofthescarletsands,1
+赤月のシルエット,crimsonmoonssemblance,1
+ルミドゥースの挽歌,lumidouceelegy,1
 星鎌・試作,prototypestarglitter,0
 千岩長槍,lithicspear,0
 喜多院十文字槍,kitaincrossspear,0
@@ -20,8 +22,10 @@
 旧貴族猟槍,royalspear,0
 ムーンピアサー,moonpiercer,0
 風信の矛,missivewindspear,0
+フィヨルドの歌,balladofthefjords,0
+正義の報酬,rightfulreward,0
+砂中の賢者達の問答,dialogues,0
+虹の行方,footprintoftherainbow,0
 鉾槍,halberd,0
 黒纓槍,blacktassel,0
 白纓槍,whitetassel,0
-鉄尖槍,ironpoint,0
-新米の長槍,beginnersprotector,0

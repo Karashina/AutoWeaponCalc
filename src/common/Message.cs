@@ -5,10 +5,10 @@ namespace CalcsheetGenerator.Common
         public static class Notice
         {
             // モード選択
-            public static readonly string SelectMode = "mode selection(auto / manual) [a|m] :";
+            public static readonly string SelectMode = "mode selection([a]uto / [n]oartifact / [m]anual ) :";
 
             // キャラクター選択
-            public static readonly string SelectCharctor = "Type the name of the character to calculate:";
+            public static readonly string SelectCharcter = "Type the name of the character to calculate:";
 
             // 武器選択
             public static readonly string SelectWeapon = "Type the weapon type of the character to calculate [sword|claymore|bow|catalyst|polearm] :";
@@ -18,6 +18,12 @@ namespace CalcsheetGenerator.Common
 
             // 聖遺物最適化選択
             public static readonly string SelectArtifactOptimization = "Do you want to use artifact mode? [y|n]:";
+
+            // 聖遺物最適化選択
+            public static readonly string SelectMainstat = "Do you want to use cr/cd switch mode? [y|n]:";
+
+            // 武器種検索メッセージ
+            public static readonly string WeaponMatch = "Searching WeaponType...";
 
             // 開始メッセージ
             public static readonly string ProcessStart = "Initialize calculation for artifact ";
