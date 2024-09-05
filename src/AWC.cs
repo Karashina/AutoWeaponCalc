@@ -81,9 +81,17 @@ namespace CalcsheetGenerator
    
                         for(int r = 1; r <= rmax; r++)
                         {
-                            string OldTextCrit = "<crit>";
-                            string NewTextCrit = "cr=0.311";
-                            string CritSuffix = "(CR)";
+                        if (InitialSetting.MainstatSel == "y") {
+                            rmax = 2;
+                        }
+                            string OldTextCrit = "";
+                            string NewTextCrit = "";
+                            string CritSuffix = "";
+                            if (InitialSetting.MainstatSel == "y") {
+                                OldTextCrit = "<crit>";
+                                NewTextCrit = "cr=0.311";
+                                CritSuffix = "(CR)";
+                            }
                             if (r == 2) {
                                 NewTextCrit = "cd=0.622";
                                 CritSuffix = "(CD)";
