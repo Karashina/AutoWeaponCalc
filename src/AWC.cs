@@ -132,23 +132,24 @@ namespace CalcsheetGenerator
 
                             OutputDataTable.Rows.Add(Weapon.NameJapanese + CritSuffix, WeaponRefineRank, WeaponDpsParams[0], WeaponDpsParams[1], WeaponDpsParams[2], WeaponDpsParams[3]); //tableに結果を格納
                         }
-                        string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
-
-                        if (Directory.Exists(Config.Path.Directory.Out) == false) //出力ディレクトリがなかったら作る
-                        {
-                            Directory.CreateDirectory(Config.Path.Directory.Out);
-                        }
-
-                        _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);
-
-                        OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
-                        if (isArtifactModeEnabled) {
-                            Console.WriteLine($"{Message.Notice.ProcessEnd}{Artifact.Name1} {Artifact.Name2}"); //終了メッセージ
-                        }
                     }
-                    // 一時ファイルの削除
-                    _FileManager.DeleteFile(Config.Path.File.TempSimConfigText);
+                    string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
+
+                    if (Directory.Exists(Config.Path.Directory.Out) == false) //出力ディレクトリがなかったら作る
+                    {
+                        Directory.CreateDirectory(Config.Path.Directory.Out);
+                    }
+
+                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);
+
+                    OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
+                    if (isArtifactModeEnabled) 
+                    {
+                        Console.WriteLine($"{Message.Notice.ProcessEnd}{Artifact.Name1} {Artifact.Name2}"); //終了メッセージ
+                    }
                 }
+                // 一時ファイルの削除
+                _FileManager.DeleteFile(Config.Path.File.TempSimConfigText);
             }
             catch (Exception ex)
             {
