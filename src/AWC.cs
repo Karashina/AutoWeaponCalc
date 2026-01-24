@@ -307,7 +307,7 @@ namespace CalcsheetGenerator
             catch (Exception ex)
             {
                 // Intentionally ignore parse errors here and fall back to JSON-style parsing below.
-                Debug.WriteLine($"Plain-text gcsim output parsing failed for '{CharacterName}': {ex}");
+                Debug.WriteLine($"Plain-text gcsim output parsing failed for '{characterName}': {ex}");
             }
 
             // 2. Fallback: Parse JSON output structure (legacy format)
