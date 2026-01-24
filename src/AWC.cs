@@ -304,7 +304,11 @@ namespace CalcsheetGenerator
                     return new string[] { m.Groups[1].Value, "0", m.Groups[1].Value, "0" };
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // Intentionally ignore parse errors here and fall back to JSON-style parsing below.
+                Debug.WriteLine($"Plain-text gcsim output parsing failed for '{CharacterName}': {ex}");
+            }
 
             // 2. Fallback: Parse JSON output structure (legacy format)
             MatchCollection nameMatches = JsonNameRegex.Matches(gcsimOutput);
