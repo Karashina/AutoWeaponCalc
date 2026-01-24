@@ -7,7 +7,7 @@ namespace CalcsheetGenerator.Module
     public class GcsimProcess : IGcsimProcess
     {
         private readonly Process _Process;
-        private string[] _Args;
+        private readonly string[] _Args;
         private readonly object _Lock = new object();
 
         public GcsimProcess(string[] args)
