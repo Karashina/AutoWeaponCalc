@@ -20,7 +20,6 @@ namespace CalcsheetGenerator.Common
         public bool IsSetPropertyNullOrEmpty()
         {
             return (string.IsNullOrEmpty(this.CharacterName) ||
-                string.IsNullOrEmpty(this.WeaponType) ||
                 string.IsNullOrEmpty(this.WeaponRefineRank) ||
                 string.IsNullOrEmpty(this.ArtifactModeSel)) ||
                 string.IsNullOrEmpty(this.MainstatSel);
