@@ -13,7 +13,7 @@ namespace Test.Methods
 
         public GetWeaponListTest()
         {
-            this.InitialSetting = new UserInput("Jean", "sword", "y", "0");
+            this.InitialSetting = new UserInput("Jean", "sword", "y", "0", "y");
         }
         [Fact(DisplayName="武器のCSVから武器情報が取得できること")]
         public void Nomal()
@@ -31,7 +31,7 @@ namespace Test.Methods
             MockStreamReaderFactory.Setup(o => o.Create(It.IsAny<String>()))
                                     .Returns(() => new StreamReader(fakeMemoryStream));
 
-            List<WeaponData> result = _SettingFileReader.GetWeaponList(InitialSetting, MockStreamReaderFactory.Object);
+            List<WeaponData> result = _SettingFileReader.GetWeaponList(InitialSetting.WeaponType, InitialSetting, MockStreamReaderFactory.Object);
 
             List<WeaponData> expectList = new List<WeaponData>();
             expectList.Add(new WeaponData("霧切の廻光", "mistsplitterreforged", "1"));
@@ -45,7 +45,7 @@ namespace Test.Methods
         public void ErrorNotFoundFile()
         {
             var exception = Assert.Throws<DirectoryNotFoundException>(() => 
-                _SettingFileReader.GetWeaponList(InitialSetting));
+                _SettingFileReader.GetWeaponList(InitialSetting.WeaponType, InitialSetting));
             Assert.NotEmpty(exception.Message);
         }
     }

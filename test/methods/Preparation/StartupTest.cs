@@ -22,12 +22,13 @@ namespace Test.Methods
             var data = String.Join(Environment.NewLine, new[]
             {
                 "Jean",
-                "sword"
+                "sword" // This line will be ignored by new logic but is present in buffer
             });
             var input = new StringReader(data);
             Console.SetIn(input);
 
-            UserInput expectOutput = new UserInput("Jean", "sword", "0", "y");
+            // WeaponType is now ignored in Startup and defaults to "TBD"
+            UserInput expectOutput = new UserInput("Jean", "TBD", "0", "y", "y");
             Assert.Equivalent(expectOutput, _Preparation.Startup());
         }
 
@@ -36,7 +37,7 @@ namespace Test.Methods
         {
             var input = new StringReader("\n\n");
             Console.SetIn(input);
-            UserInput expectOutput = new UserInput("", "", "0", "y");
+            UserInput expectOutput = new UserInput("", "TBD", "0", "y", "y");
             Assert.Equivalent(expectOutput,  _Preparation.Startup());
         }
     }

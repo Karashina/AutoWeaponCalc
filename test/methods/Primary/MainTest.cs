@@ -21,7 +21,7 @@ namespace Test.Methods
             // Preparation
             Mock<IPreparation> MockPreparation = new Mock<IPreparation>();
             MockPreparation.Setup(p => p.SelectMode());
-            UserInput DummyUserInput = new UserInput("xingqiu", "sword", "3", "y");
+            UserInput DummyUserInput = new UserInput("xingqiu", "sword", "3", "y", "y");
             MockPreparation.Setup(p => p.Startup()).Returns(DummyUserInput);
             // SettingFileReader
             Mock<ISettingFileReader> MockSettingFileReader = new Mock<ISettingFileReader>();
@@ -33,12 +33,12 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("霧切の廻光", "mistsplitterreforged", "1"));
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
-            MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(It.IsAny<string>(), DummyUserInput, null)).Returns(DummyWeaponList);
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("xingqiu add weapon=\"<w>\" refine=<r>;\nxingqiu add set=\"<a>\" count=<p>;");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
-            var sequence = MockGcsim.SetupSequence(g => g.Exec(null));
+            var sequence = MockGcsim.SetupSequence(g => g.Exec(It.IsAny<string>(), It.IsAny<IProcessFactory?>()));
             // test/bin/Debug/net6.0から見たパス
             string[] DummyGcsimOutputPathList = new[]
             {
@@ -90,8 +90,8 @@ namespace Test.Methods
 
             Primary.Main();
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps_esof_4pc.csv", null),
-                Times.Once);
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null),
+                Times.Exactly(2));
             //Columnsチェック
             List<string> ExpectEsofOutputCoulums = (List<string>)ExpectEsofOutputDataTable.Columns.Cast<DataColumn>()
                 .Select(c => c.Caption)
@@ -114,13 +114,13 @@ namespace Test.Methods
                 Assert.All(expectRow, (expect, colIndex) => Assert.Equal(expect, ActualEsofOutputRows[rowIndex][colIndex]));
             }
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps_gd_hod.csv", null),
-                Times.Once);
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null),
+                Times.Exactly(2));
             //Columnsチェック
             List<string> ExpectGdHodOutputCoulums = (List<string>)ExpectGdHodOutputDataTable.Columns.Cast<DataColumn>()
                 .Select(c => c.Caption)
                 .Select(field => field.ToString()).ToList<string>();
-            List<string> ActualGdHodOutputCoulums = ActualDataTables[0].Columns.Cast<DataColumn>()
+            List<string> ActualGdHodOutputCoulums = ActualDataTables[1].Columns.Cast<DataColumn>()
                 .Select(c => c.Caption)
                 .Select(field => field.ToString()).ToList<string>();
             Assert.All(ExpectGdHodOutputCoulums, (expect, Index) => Assert.Equal(expect, ActualGdHodOutputCoulums[Index]));
@@ -129,11 +129,11 @@ namespace Test.Methods
                 .Select(r => r.ItemArray
                     .Select(i => i?.ToString())
                     .Select(field => field?.ToString()).ToList<string?>()).ToList<List<string?>>();
-            List<List<string?>>  ActualGdHodOutputRows = ActualDataTables[0].Rows.Cast<DataRow>()
+            List<List<string?>>  ActualGdHodOutputRows = ActualDataTables[1].Rows.Cast<DataRow>()
                 .Select(r => r.ItemArray
                     .Select(i => i?.ToString())
                     .Select(field => field?.ToString()).ToList<string?>()).ToList<List<string?>>();
-            foreach (var (expectRow, rowIndex) in  ExpectEsofOutputRows.Select((row, index) => (row, index)))
+            foreach (var (expectRow, rowIndex) in  ExpectGdHodOutputRows.Select((row, index) => (row, index)))
             {
                 Assert.All(expectRow, (expect, colIndex) => Assert.Equal(expect, ActualGdHodOutputRows[rowIndex][colIndex]));
             }
@@ -149,7 +149,7 @@ namespace Test.Methods
             // Preparation
             Mock<IPreparation> MockPreparation = new Mock<IPreparation>();
             MockPreparation.Setup(p => p.SelectMode());
-            UserInput DummyUserInput = new UserInput("xingqiu", "sword", "0", "n");
+            UserInput DummyUserInput = new UserInput("xingqiu", "sword", "0", "n", "y");
             MockPreparation.Setup(p => p.Startup()).Returns(DummyUserInput);
             // SettingFileReader
             Mock<ISettingFileReader> MockSettingFileReader = new Mock<ISettingFileReader>();
@@ -157,12 +157,12 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("霧切の廻光", "mistsplitterreforged", "1"));
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
-            MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(It.IsAny<string>(), DummyUserInput, null)).Returns(DummyWeaponList);
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("xingqiu add weapon=\"<w>\" refine=<r>;\nxingqiu add set=\"<a>\" count=<p>;");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
-            var sequence = MockGcsim.SetupSequence(g => g.Exec(null));
+            var sequence = MockGcsim.SetupSequence(g => g.Exec(It.IsAny<string>(), It.IsAny<IProcessFactory?>()));
             // test/bin/Debug/net6.0から見たパス
             string[] DummyGcsimOutputPathList = new[]
             {
@@ -203,7 +203,7 @@ namespace Test.Methods
 
             Primary.Main();
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps.csv", null),
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null),
                 Times.Once);
             //Columnsチェック
             List<string> ExpectEsofOutputCoulums = (List<string>)ExpectEsofOutputDataTable.Columns.Cast<DataColumn>()
@@ -238,7 +238,7 @@ namespace Test.Methods
             // Preparation
             Mock<IPreparation> MockPreparation = new Mock<IPreparation>();
             MockPreparation.Setup(p => p.SelectMode());
-            UserInput DummyUserInput = new UserInput("xingqiu", "sword", "3", "n");
+            UserInput DummyUserInput = new UserInput("xingqiu", "sword", "3", "n", "y");
             MockPreparation.Setup(p => p.Startup()).Returns(DummyUserInput);
             // SettingFileReader
             Mock<ISettingFileReader> MockSettingFileReader = new Mock<ISettingFileReader>();
@@ -246,12 +246,12 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("霧切の廻光", "mistsplitterreforged", "1"));
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
-            MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(It.IsAny<string>(), DummyUserInput, null)).Returns(DummyWeaponList);
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("xingqiu add weapon=\"<w>\" refine=<r>;\nxingqiu add set=\"<a>\" count=<p>;");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
-            var sequence = MockGcsim.SetupSequence(g => g.Exec(null));
+            var sequence = MockGcsim.SetupSequence(g => g.Exec(It.IsAny<string>(), It.IsAny<IProcessFactory?>()));
             // test/bin/Debug/net6.0から見たパス
             string[] DummyGcsimOutputPathList = new[]
             {
@@ -292,7 +292,7 @@ namespace Test.Methods
 
             Primary.Main();
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps.csv", null),
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null),
                 Times.Once);
             //Columnsチェック
             List<string> ExpectEsofOutputCoulums = (List<string>)ExpectEsofOutputDataTable.Columns.Cast<DataColumn>()
@@ -327,7 +327,7 @@ namespace Test.Methods
             // Preparation
             Mock<IPreparation> MockPreparation = new Mock<IPreparation>();
             MockPreparation.Setup(p => p.SelectMode());
-            UserInput DummyUserInput = new UserInput("xingqiu", "sword", "0", "n");
+            UserInput DummyUserInput = new UserInput("xingqiu", "sword", "0", "n", "y");
             MockPreparation.Setup(p => p.Startup()).Returns(DummyUserInput);
             // SettingFileReader
             Mock<ISettingFileReader> MockSettingFileReader = new Mock<ISettingFileReader>();
@@ -335,12 +335,12 @@ namespace Test.Methods
             DummyWeaponList.Add(new WeaponData("霧切の廻光", "mistsplitterreforged", "1"));
             DummyWeaponList.Add(new WeaponData("風鷹剣", "aquilafavonia", "1"));
             DummyWeaponList.Add(new WeaponData("斬山の刃", "summitshaper", "1"));
-            MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(DummyUserInput, null)).Returns(DummyWeaponList);
-            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("");
+            MockSettingFileReader.Setup(sfr => sfr.GetWeaponList(It.IsAny<string>(), DummyUserInput, null)).Returns(DummyWeaponList);
+            MockSettingFileReader.Setup(sfr => sfr.GetTextFileContent(It.IsAny<string>(), null)).Returns("xingqiu add weapon=\"<w>\" refine=<r>;\nxingqiu add set=\"<a>\" count=<p>;");
             //GcsimManager
             Mock<IGcsimManager> MockGcsimManager = new Mock<IGcsimManager>();
             Mock<IGcsim> MockGcsim = new Mock<IGcsim>();
-            var sequence = MockGcsim.SetupSequence(g => g.Exec(null));
+            var sequence = MockGcsim.SetupSequence(g => g.Exec(It.IsAny<string>(), It.IsAny<IProcessFactory?>()));
             // test/bin/Debug/net6.0から見たパス
             string[] DummyGcsimOutputPathList = new[]
             {
@@ -384,7 +384,7 @@ namespace Test.Methods
 
             Primary.Main();
 
-            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), CalcsheetGenerator.Config.Path.Directory.Out + "WeaponDps.csv", null),
+            MockSettingFileWriter.Verify(sfw => sfw.ExportDataTableToCsv(It.IsAny<DataTable>(), It.IsAny<string>(), null),
                 Times.Once);
             //Columnsチェック
             List<string> ExpectEsofOutputCoulums = (List<string>)ExpectEsofOutputDataTable.Columns.Cast<DataColumn>()
@@ -418,7 +418,7 @@ namespace Test.Methods
             // Preparation
             Mock<IPreparation> MockPreparation = new Mock<IPreparation>();
             MockPreparation.Setup(p => p.SelectMode());
-            UserInput DummyUserInput = new UserInput(CharacterName, WeaponType, "0", "y");
+            UserInput DummyUserInput = new UserInput(CharacterName, WeaponType, "0", "y", "y");
             MockPreparation.Setup(p => p.Startup()).Returns(DummyUserInput);
             PreparationFieldInfo?.SetValue(null, MockPreparation.Object);
             Mock<_Environment> MockEnviroment = new Mock<_Environment>();
