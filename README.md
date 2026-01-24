@@ -112,7 +112,7 @@
 │       ├── claymore.csv
 │       ├── polearm.csv
 │       └── sword.csv
-│   └── chatracterData
+│   └── characterData
 │       └── character.csv
 ├── src 
 │   ├── AWC.cs 

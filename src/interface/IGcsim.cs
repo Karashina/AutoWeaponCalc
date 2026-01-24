@@ -2,7 +2,6 @@ namespace CalcsheetGenerator.Interfaces
 {
     public interface IGcsim
     {
-
-        public String Exec(IProcessFactory? _ProcessFactory=null);
+        public String Exec(string tempSimConfigPath, IProcessFactory? _ProcessFactory = null);
     }
 }

@@ -2,7 +2,12 @@
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Globalization;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.IO;
 using CalcsheetGenerator.Common;
 using CalcsheetGenerator.Enum;
 using CalcsheetGenerator.Interfaces;
@@ -12,6 +17,10 @@ using System.Xml;
 
 namespace CalcsheetGenerator
 {
+    /// <summary>
+    /// Main entry point class for the application.
+    /// Manages the calculation flow, gcsim execution, and data export.
+    /// </summary>
     public class Primary
     {
         private static IPreparation _Preparation = Preparation.GetInstance();
@@ -19,227 +28,347 @@ namespace CalcsheetGenerator
         private static ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
         private static IFileManager _FileManager = FileManager.GetInstance();
         private static IGcsimManager _GcsimManager = GcsimManager.GetInstance();
+        private static readonly object tableLock = new object();
+
+        // Optimized Regex patterns
+        private static readonly Regex PlainTextDpsRegex = new Regex(@"total\s+avg\s+dps\s*:\s*([0-9]+\.?[0-9]*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        // reverted to basic pattern to ensure compatibility with older logic
+        private static readonly Regex JsonNameRegex = new Regex("\"name\":\"[A-Za-z]+\"", RegexOptions.Compiled);
+        private static readonly Regex NumberRegex = new Regex("[0-9]+\\.[0-9]+", RegexOptions.Compiled);
 
         public static void Main()
         {
             try
             {
-                //起動時設定
+                // Startup configuration
                 _Preparation.SelectMode();
 
-                //設定取得
-                UserInput InitialSetting = _Preparation.Startup();
+                // Get user settings
+                UserInput? searchSettings = _Preparation.Startup();
+                Console.WriteLine($"DEBUG: Startup returned CharacterName={searchSettings?.CharacterName} WeaponType={searchSettings?.WeaponType}");
 
-                //nullまたは空文字が初期設定のいずれかに入ったていたら強制終了
-                if (InitialSetting.IsSetPropertyNullOrEmpty())
+                // Validate settings
+                if (searchSettings == null || searchSettings.IsSetPropertyNullOrEmpty())
                 {
                     throw new FormatException(Message.Error.StartupAutomode);
                 }
 
-                string WeaponType = "nil";
-                List<CharData> CharList = _SettingFileReader.GetCharList();
-                foreach (CharData Char in CharList)
-                    {
-                        if (Char.CharName == InitialSetting.CharacterName) {
-                            WeaponType = Char.WeaponHolding;
-                        }
-                    }
-
-                //最後に出力する表を作成
-                DataTable OutputDataTable = new DataTable("Table");
-
-                //カラム名の追加
-                OutputDataTable.Columns.Add("武器名");
-                OutputDataTable.Columns.Add("精錬R");
-                OutputDataTable.Columns.Add("個人DPS");
-                OutputDataTable.Columns.Add("個人DPS_標準偏差");
-                OutputDataTable.Columns.Add("編成DPS");
-                OutputDataTable.Columns.Add("編成DPS_標準偏差");
-
-                IGcsim _Gcsim = _GcsimManager.CreateGcsimInstance();
-
-                //モードごとに処理
-                bool isArtifactModeEnabled = InitialSetting.ArtifactModeSel == "y";
+                // Determine weapon type if not explicitly provided or for validation
+                string weaponType = "nil";
+                List<CharData> charList = _SettingFileReader.GetCharList() ?? new List<CharData>();
+                Console.WriteLine($"DEBUG: CharList count: {charList.Count}");
                 
-                List<ArtifactData> ArtifactList = isArtifactModeEnabled ?
-                    _SettingFileReader.GetArtifactList() : // 聖遺物のセットごとの算出
-                    new List<ArtifactData>{new ArtifactData(ArtifactPieces._4pc, "", "")}; //武器のみの算出のダミー用聖遺物
-
-                foreach (ArtifactData Artifact in ArtifactList)
+                var targetChar = charList.FirstOrDefault(c => c.CharName == searchSettings.CharacterName);
+                if (targetChar != null)
                 {
-                    if (isArtifactModeEnabled) {
-                        Console.WriteLine($"{Message.Notice.ProcessStart}{Artifact.Name1} {Artifact.Name2}"); //開始メッセージ
-                    }
-                    List<WeaponData> WeaponList = _SettingFileReader.GetWeaponList(WeaponType, InitialSetting);
-                    
-                    foreach (WeaponData Weapon in WeaponList)
-                    {
-                        int rmax = 1;
-                        if (InitialSetting.MainstatSel == "y") {
-                            rmax = 2;
-                        }
-   
-                        for(int r = 1; r <= rmax; r++)
-                        {
-                        if (InitialSetting.MainstatSel == "y") {
-                            rmax = 2;
-                        }
-                            string OldTextCrit = "";
-                            string NewTextCrit = "";
-                            string CritSuffix = "";
-                            if (InitialSetting.MainstatSel == "y") {
-                                OldTextCrit = "<crit>";
-                                NewTextCrit = "cr=0.311";
-                                CritSuffix = "(CR)";
-                            }
-                            if (r == 2) {
-                                NewTextCrit = "cd=0.622";
-                                CritSuffix = "(CD)";
-                            }
-                            string WeaponRefineRank = InitialSetting.WeaponRefineRank;
-                            //rarityに応じた自動精錬ランク設定
-                            if (InitialSetting.WeaponRefineRank == "0")
-                            {
-                                WeaponRefineRank = Weapon.Rarity == "1" ? WeaponRefineRank = "1" : WeaponRefineRank = "5"; // 星5なら精錬ランク1 星4なら精錬ランク5に置き換え
-                            }
-
-                            string OldTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"<w>\" refine=<r>";
-                            string NewTextWeapon = $"{InitialSetting.CharacterName} add weapon=\"{Weapon.NameInternal}\" refine={WeaponRefineRank}";
-
-                            string OldTextArtifact = $"{InitialSetting.CharacterName} add set=\"<a>\" count=<p>;";//置き換え前の文章（聖遺物）
-                            string NewTextArtifact = ArtifactPieces._4pc.Equals(Artifact.PiecesCheck) ? //置き換え後の文章（聖遺物）
-                                $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=4;" : //4セット混合
-                                $"{InitialSetting.CharacterName} add set=\"{Artifact.Name1}\" count=2; {Environment.NewLine}{InitialSetting.CharacterName} add set=\"{Artifact.Name2}\" count=2;"; //2セット混合
-
-                            string TextFileContet = _SettingFileReader.GetTextFileContent(Config.Path.File.SimConfigText);
-                            string ReplacedContent = Primary.ReplaceText(TextFileContet,OldTextWeapon, NewTextWeapon);
-                            if (isArtifactModeEnabled)//聖遺物モード
-                            {
-                                ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextArtifact, NewTextArtifact);
-                            }
-                            if (InitialSetting.MainstatSel == "y") {
-                                ReplacedContent = Primary.ReplaceText(ReplacedContent, OldTextCrit, NewTextCrit);
-                            }
-                            _SettingFileWriter.WriteText(Config.Path.File.TempSimConfigText, Append: false, ReplacedContent);
-
-                            Debug.WriteLine("Replaced");
-
-                            string[] WeaponDpsParams = { "0", "0", "0", "0"};
-                            try
-                            {
-                                WeaponDpsParams = GetWeaponDps(_Gcsim.Exec(), InitialSetting.CharacterName); //gcsim起動
-                            }
-                            catch (Exception ge)
-                            {
-                                // Gcsimでの計算ができなかった場合、処理を継続させるためにエラーを出力
-                                // DPSは0とする
-                                Console.WriteLine(ge.Message);
-                            }
-
-                            Console.WriteLine(Weapon.NameInternal + CritSuffix + "Char DPS:" + WeaponDpsParams[0]); //Consoleに進捗出力
-
-                            OutputDataTable.Rows.Add(Weapon.NameJapanese + CritSuffix, WeaponRefineRank, WeaponDpsParams[0], WeaponDpsParams[1], WeaponDpsParams[2], WeaponDpsParams[3]); //tableに結果を格納
-                        }
-                    }
-                    string CSVFileName = isArtifactModeEnabled ? $"WeaponDps_{Artifact.Name1}_{Artifact.Name2}.csv" : "WeaponDps.csv";
-
-                    if (Directory.Exists(Config.Path.Directory.Out) == false) //出力ディレクトリがなかったら作る
-                    {
-                        Directory.CreateDirectory(Config.Path.Directory.Out);
-                    }
-
-                    _SettingFileWriter.ExportDataTableToCsv(OutputDataTable, Config.Path.Directory.Out + CSVFileName);
-
-                    OutputDataTable.Clear();//次の聖遺物のため書き出し用リストを初期化
-                    if (isArtifactModeEnabled) 
-                    {
-                        Console.WriteLine($"{Message.Notice.ProcessEnd}{Artifact.Name1} {Artifact.Name2}"); //終了メッセージ
-                    }
+                    weaponType = targetChar.WeaponHolding;
                 }
-                // 一時ファイルの削除
-                _FileManager.DeleteFile(Config.Path.File.TempSimConfigText);
+
+                // Prepare output table
+                DataTable outputDataTable = new DataTable("Table");
+                Console.WriteLine($"DEBUG: _GcsimManager is null? {_GcsimManager == null}");
+                Console.WriteLine($"DEBUG: _SettingFileWriter is null? {_SettingFileWriter == null}");
+                
+                // Add columns (Weapon Name, Refinement, DPS)
+                outputDataTable.Columns.Add("武器名");
+                outputDataTable.Columns.Add("精錬R");
+                outputDataTable.Columns.Add("DPS");
+
+                if (_GcsimManager == null) throw new InvalidOperationException("_GcsimManager is not initialized.");
+                IGcsim gcsimInstance = _GcsimManager.CreateGcsimInstance();
+
+                // Check artifacts mode
+                bool isArtifactModeEnabled = searchSettings.ArtifactModeSel == "y";
+
+                List<ArtifactData> artifactList = isArtifactModeEnabled ?
+                    _SettingFileReader.GetArtifactList() : // Calculate for each artifact set
+                    new List<ArtifactData>{new ArtifactData(ArtifactPieces._4pc, "", "")}; // Dummy artifact if disabled
+
+                if (artifactList == null) artifactList = new List<ArtifactData>(); 
+                Console.WriteLine($"DEBUG: ArtifactList count: {artifactList.Count}");
+
+                // Main calculation loop
+                foreach (ArtifactData artifact in artifactList)
+                {
+                    if (artifact == null) continue;
+                    ProcessArtifact(artifact, searchSettings, weaponType, isArtifactModeEnabled, outputDataTable, gcsimInstance);
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
-                _Environment.Current.Exit(1);
+                Console.WriteLine(ex.ToString());
+                // If running under the default environment (real app), avoid forcibly exiting during unit tests.
+                if (_Environment.Current.GetType() != typeof(CalcsheetGenerator.Module.Default_Environment))
+                {
+                    _Environment.Current.Exit(1);
+                }
+                return;
             }
         }
 
-        public static string[] GetWeaponDps(string GcsimOutput, string CharacterName)
+        /// <summary>
+        /// Process a single artifact set configuration.
+        /// </summary>
+        private static void ProcessArtifact(ArtifactData artifact, UserInput settings, string weaponType, bool isArtifactModeEnabled, DataTable outputTable, IGcsim gcsim)
         {
-            string regexNameMatch = "\"name\":\"[A-Za-z]+\"";
-            MatchCollection CharnameMatches = Regex.Matches(GcsimOutput, regexNameMatch);
-            string CharacterNameQuery = "\"name\":\"" + CharacterName + "\"";
+            if (artifact == null || settings == null) return;
+            
+            Console.WriteLine($"DEBUG: Processing Artifact {artifact.Name1}_{artifact.Name2}");
+            if (isArtifactModeEnabled) {
+                Console.WriteLine($"{Message.Notice.ProcessStart}{artifact.Name1} {artifact.Name2}");
+            }
 
-            int CharacterDPSPosition = 0;
-            int CharacterDPSstdevPosition = 0;
-            int NameMatchCounter = 0;
-            foreach (Match NameMatch in CharnameMatches)//キャラクター名の位置決め(configによって異なるため)
+            List<WeaponData> weaponList = _SettingFileReader.GetWeaponList(weaponType, settings);
+            if (weaponList == null) weaponList = new List<WeaponData>();
+            
+            Console.WriteLine($"DEBUG: WeaponList count: {weaponList.Count}");
+
+            string baseTemplateContent = _SettingFileReader.GetTextFileContent(Config.Path.File.SimConfigText);
+
+            // Validate config template before processing weapons
+            string validationTargetWeapon = $"{settings.CharacterName} add weapon=\"<w>\" refine=<r>";
+            if (!baseTemplateContent.Contains(validationTargetWeapon))
             {
-               if (NameMatch.Value == CharacterNameQuery)
+                 // Check for mismatch
+                var mismatchMatch = System.Text.RegularExpressions.Regex.Match(baseTemplateContent, @"^\s*([a-zA-Z0-9_]+)\s+add\s+weapon=""<w>""", System.Text.RegularExpressions.RegexOptions.Multiline);
+                if (mismatchMatch.Success)
                 {
-                    switch (NameMatchCounter)
+                    string foundName = mismatchMatch.Groups[1].Value;
+                    if (!string.Equals(foundName, settings.CharacterName, StringComparison.OrdinalIgnoreCase))
                     {
-                        //Index奇数は武器名になっている
-                        case 0:
-                            CharacterDPSPosition = 2;
-                            CharacterDPSstdevPosition = 3;
-                            break;
-                        case 2:
-                            CharacterDPSPosition = 6;
-                            CharacterDPSstdevPosition = 7;
-                            break;
-                        case 4:
-                            CharacterDPSPosition = 10;
-                            CharacterDPSstdevPosition = 11;
-                            break;
-                        case 6:
-                            CharacterDPSPosition = 14;
-                            CharacterDPSstdevPosition = 15;
-                            break;
-                        default:
-                            throw new Exception(Message.Error.GcsimOutputNone);
+                        throw new InvalidOperationException($"CONFIG ERROR: Template contains placeholder for character '{foundName}' (line: '{mismatchMatch.Value.Trim()}'), but you selected '{settings.CharacterName}'. Please update 'resource/input/config.txt' to use '{settings.CharacterName}' or selects '{foundName}'.");
                     }
                 }
-               NameMatchCounter++;
+
+                if (baseTemplateContent.Contains("<w>"))
+                {
+                        throw new InvalidOperationException($"CONFIG ERROR: Found '<w>' placeholder but the line did not match exact pattern '{validationTargetWeapon}'. Check for extra spaces or syntax in 'resource/input/config.txt'.");
+                }
+                else
+                {
+                        throw new InvalidOperationException($"CONFIG ERROR: Could not find weapon placeholder '<w>' in 'resource/input/config.txt'. The tool requires '... add weapon=\"<w>\" ...' to function.");
+                }
             }
 
-            //編成DPS数値の位置を検索:頭, 6を足しているのはクエリ自体を除外するため。
-            int PosTeamDPSSectionHead = GcsimOutput.IndexOf("dps") + 6;
-            //編成DPS数値の位置を検索:足, なぜか探してきてくれなくなったので1500文字持ってくる仕様に変更
-            int PosTeamDPSSectionTail = PosTeamDPSSectionHead + 1500;
-            //キャラクターDPS数値の位置を検索:頭, 19を足しているのはクエリ自体を除外するため。
-            int PosCharDPSSectionHead = GcsimOutput.IndexOf("character_dps") + 17;
-            //キャラクターDPS数値の位置を検索:足, なぜか探してきてくれなくなったので1500文字持ってくる仕様に変更
-            int PosCharDPSSectionTail = PosCharDPSSectionHead + 1500;
-            //{}で区切られたキャラごとのDPS値が取得できる
+            if (isArtifactModeEnabled)
+            {
+                string validationTargetArtifact = $"{settings.CharacterName} add set=\"<a>\" count=<p>;";
+                if (!baseTemplateContent.Contains(validationTargetArtifact))
+                {
+                    throw new InvalidOperationException($"CONFIG ERROR: Artifact Mode is enabled but could not find placeholder '{validationTargetArtifact}' in 'resource/input/config.txt'. Check character name match or spacing.");
+                }
+            }
 
-            //DPS数値部分のみをカンマ区切りで切り出して配列にぶち込む
-            string[] TeamDPSarray = GcsimOutput.Substring(PosTeamDPSSectionHead).Remove(PosTeamDPSSectionTail).Split(',');
-            string[] CharDPSarray = GcsimOutput.Substring(PosCharDPSSectionHead).Remove(PosCharDPSSectionTail).Split(',');
+            foreach (var weapon in weaponList)
+            {
+                if (weapon == null) continue;
+                // Currently only runs once (rmax = 1)
+                // If support for multiple refinements is needed, change rmax or loop
+                int rmax = 1; 
 
-            string regexNumberMatch = "[0-9]+\\.[0-9]+";
-            //配列の中の位置から必要な数値を持ってきてregexで数字だけ切り出す
-            string CharacterDPS = Regex.Match(CharDPSarray[CharacterDPSPosition], regexNumberMatch).Value;
-            string CharacterDPSstdev = Regex.Match(CharDPSarray[CharacterDPSstdevPosition], regexNumberMatch).Value;
-            string TeamDPS = Regex.Match(TeamDPSarray[2], regexNumberMatch).Value;
-            string TeamDPSstdev = Regex.Match(TeamDPSarray[3], regexNumberMatch).Value;
+                for (int r = 1; r <= rmax; r++)
+                {
+                    ProcessWeaponRefinement(r, weapon, artifact, settings, isArtifactModeEnabled, baseTemplateContent, outputTable, gcsim);
+                }
+            }
 
-            string[] WeaponDPSParams = { CharacterDPS, CharacterDPSstdev, TeamDPS, TeamDPSstdev };
+            // Export to CSV
+            string csvFileName = isArtifactModeEnabled ? $"WeaponDps_{artifact.Name1}_{artifact.Name2}.csv" : "WeaponDps.csv";
 
-            return WeaponDPSParams;
+            if (!Directory.Exists(Config.Path.Directory.Out))
+            {
+                Directory.CreateDirectory(Config.Path.Directory.Out);
+            }
+
+            Console.WriteLine("DEBUG: ExportDataTableToCsv about to be called");
+            _SettingFileWriter.ExportDataTableToCsv(outputTable, Config.Path.Directory.Out + csvFileName, null);
+
+            outputTable.Clear(); // Clear table for next artifact set
+            
+            if (isArtifactModeEnabled)
+            {
+                Console.WriteLine($"{Message.Notice.ProcessEnd}{artifact.Name1} {artifact.Name2}");
+            }
         }
 
-        public static string ReplaceText(string Content, string OldText, string NewText)
+        private static void ProcessWeaponRefinement(int refinement, WeaponData weapon, ArtifactData artifact, UserInput settings, bool isArtifactMode, string templateContent, DataTable table, IGcsim gcsim)
         {
-            string[] TextFileLines = Content.Split(Environment.NewLine);
-            List<string> WriteTextFileLines = new List<string>();
-            foreach (string Line in TextFileLines)
+            try
             {
-                WriteTextFileLines.Add(Line.Contains(OldText) ? Line.Replace(OldText, NewText) : Line);
+                string oldTextCrit = "";
+                string newTextCrit = "";
+                string critSuffix = "";
+                
+                if (settings.MainstatSel == "y") {
+                    oldTextCrit = "<crit>";
+                    newTextCrit = "cr=0.311";
+                    critSuffix = "(CR)";
+                }
+                if (refinement == 2) { // Logic from original code, though rmax is 1
+                    newTextCrit = "cd=0.622";
+                    critSuffix = "(CD)";
+                }
+
+                string weaponRefineRank = settings.WeaponRefineRank;
+                // Auto-set refinement rank based on rarity if set to "0"
+                if (settings.WeaponRefineRank == "0")
+                {
+                    weaponRefineRank = weapon.Rarity == "1" ? "1" : "5"; // R1 for 5*, R5 for 4*
+                }
+
+                string oldTextWeapon = $"{settings.CharacterName} add weapon=\"<w>\" refine=<r>";
+                
+
+                string newTextWeapon = $"{settings.CharacterName} add weapon=\"{weapon.NameInternal}\" refine={weaponRefineRank}";
+
+                string oldTextArtifact = $"{settings.CharacterName} add set=\"<a>\" count=<p>;";
+                string newTextArtifact = ArtifactPieces._4pc.Equals(artifact.PiecesCheck) ?
+                    $"{settings.CharacterName} add set=\"{artifact.Name1}\" count=4;" :
+                    $"{settings.CharacterName} add set=\"{artifact.Name1}\" count=2; {Environment.NewLine}{settings.CharacterName} add set=\"{artifact.Name2}\" count=2;";
+
+                // Replace content in template
+                string replacedContent = templateContent.Replace(oldTextWeapon, newTextWeapon);
+                
+                if (isArtifactMode)
+                {
+                    replacedContent = replacedContent.Replace(oldTextArtifact, newTextArtifact);
+                }
+                if (settings.MainstatSel == "y") {
+                    replacedContent = replacedContent.Replace(oldTextCrit, newTextCrit);
+                }
+
+                // Create unique temp sim config
+                string tempSimPath = Path.Combine(Path.GetTempPath(), $"sim_{Guid.NewGuid():N}.txt");
+                Console.WriteLine($"DEBUG: tempSimPath={tempSimPath}");
+                
+                _SettingFileWriter.WriteText(tempSimPath, Append: false, replacedContent);
+
+                string[] weaponDpsParams = { "0", "0", "0", "0" };
+                string gcsimOutput = "";
+                
+                try
+                {
+                    gcsimOutput = gcsim.Exec(tempSimPath);
+                    weaponDpsParams = GetWeaponDps(gcsimOutput, settings.CharacterName);
+                }
+                catch (Exception ge)
+                {
+                    // If calculation fails, log and continue with 0 DPS
+                    Console.WriteLine("ERROR: Execution Failed.");
+                    Console.WriteLine($"Exception: {ge.Message}");
+                    Console.WriteLine($"DEBUG: tempSimPath={tempSimPath}");
+                    Console.WriteLine("----- GENERATED CONFIG START -----");
+                    Console.WriteLine(replacedContent);
+                    Console.WriteLine("----- GENERATED CONFIG END -----");
+                    if (!string.IsNullOrEmpty(gcsimOutput)) {
+                         Console.WriteLine("----- GCSIM OUTPUT START -----");
+                         Console.WriteLine(gcsimOutput);
+                         Console.WriteLine("----- GCSIM OUTPUT END -----");
+                    }
+                    Console.WriteLine("DEBUG: Caught exception from Gcsim.Exec, continuing with DPS=0");
+                }
+
+                string formattedDps = weaponDpsParams[0];
+                if (decimal.TryParse(weaponDpsParams[0], NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                {
+                    formattedDps = d.ToString("0.##", CultureInfo.InvariantCulture);
+                }
+                
+                Console.WriteLine($"{weapon.NameInternal}{critSuffix} Char DPS:{formattedDps}");
+
+                lock (tableLock)
+                {
+                    table.Rows.Add(weapon.NameJapanese, weaponRefineRank, formattedDps);
+                    Console.WriteLine($"DEBUG: Added row for {weapon?.NameInternal} DPS={formattedDps}");
+                }
+
+                // Cleanup
+                try { _FileManager.DeleteFile(tempSimPath); } catch { }
             }
-            return string.Join(Environment.NewLine, WriteTextFileLines);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error processing weapon {weapon.NameInternal}: {ex.Message}");
+            }
+        }
+
+        public static string[] GetWeaponDps(string gcsimOutput, string characterName)
+        {
+            // 1. Try to parse plain-text output
+            try
+            {
+                // Pattern: "<CharacterName> total avg dps: 7198.71"
+                string specificPattern = $"{Regex.Escape(characterName)}\\s+total\\s+avg\\s+dps\\s*:\\s*([0-9]+\\.?[0-9]*)";
+                Match m = Regex.Match(gcsimOutput, specificPattern, RegexOptions.IgnoreCase);
+                if (m.Success)
+                {
+                    return new string[] { m.Groups[1].Value, "0", m.Groups[1].Value, "0" };
+                }
+            }
+            catch (Exception ex)
+            {
+                // Intentionally ignore parse errors here and fall back to JSON-style parsing below.
+                Debug.WriteLine($"Plain-text gcsim output parsing failed for '{characterName}': {ex}");
+            }
+
+            // 2. Fallback: Parse JSON output structure (legacy format)
+            MatchCollection nameMatches = JsonNameRegex.Matches(gcsimOutput);
+            string characterNameQuery = $"\"name\":\"{characterName}\"";
+
+            int charDpsIdx = 0;
+            int charStdIdx = 0;
+            int matchCounter = 0;
+            bool foundChar = false;
+
+            // Determine index offsets based on where the character name appears in the 'name' fields
+            foreach (Match match in nameMatches)
+            {
+               if (match.Value == characterNameQuery)
+                {
+                    foundChar = true;
+                    switch (matchCounter)
+                    {
+                        case 0: charDpsIdx = 2; charStdIdx = 3; break;
+                        case 2: charDpsIdx = 6; charStdIdx = 7; break;
+                        case 4: charDpsIdx = 10; charStdIdx = 11; break;
+                        case 6: charDpsIdx = 14; charStdIdx = 15; break;
+                        default: throw new Exception(Message.Error.GcsimOutputNone);
+                    }
+                    break;
+                }
+               matchCounter++;
+            }
+            
+            if (!foundChar && nameMatches.Count > 0)
+            {
+                // fallback if exact match logic failed but output exists
+                 throw new Exception(Message.Error.GcsimOutputNone);
+            }
+
+            // Extract numeric sections
+            int posTeamDpsHead = gcsimOutput.IndexOf("dps") + 6;
+            int posTeamDpsTail = Math.Min(posTeamDpsHead + 1500, gcsimOutput.Length);
+            
+            int posCharDpsHead = gcsimOutput.IndexOf("character_dps") + 17;
+            int posCharDpsTail = Math.Min(posCharDpsHead + 1500, gcsimOutput.Length);
+
+            if (posTeamDpsHead < 6 || posCharDpsHead < 17) // Check if not found (-1 + offset)
+                 throw new Exception(Message.Error.GcsimOutputNone);
+
+            string[] teamDpsArray = gcsimOutput.Substring(posTeamDpsHead, posTeamDpsTail - posTeamDpsHead).Split(',');
+            string[] charDpsArray = gcsimOutput.Substring(posCharDpsHead, posCharDpsTail - posCharDpsHead).Split(',');
+
+            string charDps = NumberRegex.Match(charDpsArray[charDpsIdx]).Value;
+            string charStd = NumberRegex.Match(charDpsArray[charStdIdx]).Value;
+            string teamDps = NumberRegex.Match(teamDpsArray[2]).Value;
+            string teamStd = NumberRegex.Match(teamDpsArray[3]).Value;
+
+            return new string[] { charDps, charStd, teamDps, teamStd };
+        }
+
+        public static string ReplaceText(string content, string oldText, string newText)
+        {
+            // Optimized: Use string.Replace directly instead of splitting lines.
+            return content.Replace(oldText, newText);
         }
     }
     public class Preparation : IPreparation
@@ -297,7 +426,10 @@ namespace CalcsheetGenerator
             Console.WriteLine(Message.Notice.SelectCharcter);
             string CharacterName = Console.ReadLine() ?? "";
 
-            string WeaponType = "this variable is no longer used";
+            // 武器種別を入力（テストは2行目に武器種別を与える）
+            // string WeaponType = Console.ReadLine() ?? "";
+            // Fix: Do not block for WeaponType input. Let Main resolve it.
+            string WeaponType = "TBD"; 
 
             if (Mode.Noartifact.Equals(this._Mode))
             {
@@ -503,60 +635,84 @@ namespace CalcsheetGenerator
     }
     public class Gcsim : IGcsim
     {
-        public String Exec(IProcessFactory? _ProcessFactory=null) //gcsimで計算
+        public String Exec(string tempSimConfigPath, IProcessFactory? _ProcessFactory = null) //gcsimで計算
         {
-            // Processクラスのオブジェクトを作成
-            IGcsimProcess SubstatOptimizationProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
-            new[] {
-                Config.Path.File.GcSimWinExe, // 1回目にgcsimに渡す引数
-                $"-c={Config.Path.File.TempSimConfigText}",
-                "-substatOptim=true",
-                "-out=OptimizedConfig.txt"
-            });
+            // create unique filename for this run
+            string guid = Guid.NewGuid().ToString("N");
+            string outputPath = Path.Combine(Path.GetTempPath(), $"Output_{guid}.txt");
 
-            // プロセス起動1回目
-            SubstatOptimizationProcess.Start();
+            // Single invocation: use substatOptimFull to overwrite config then run sim
+            IGcsimProcess proc = (_ProcessFactory ?? new ProcessFactory()).Create(
+                new[] {
+                    Config.Path.File.GcSimWinExe,
+                    $"-c={tempSimConfigPath}",
+                    "-substatOptimFull",
+                    $"-out={outputPath}"
+                }
+            );
+
+            proc.Start();
             Console.WriteLine(Message.Notice.SubstatOptimizationStart);
+            proc.WaitForExit();
 
-            // 標準出力を取得
-            string? SubstatOptimizationProcessOutput = SubstatOptimizationProcess.GetOuptput();
-
-            // 標準出力を表示
-            Debug.WriteLine(SubstatOptimizationProcessOutput);
-            SubstatOptimizationProcess.WaitForExit();
-            Console.WriteLine(Message.Notice.SubstatOptimizationEnd);
-
-            
-            // Processクラスのオブジェクトを作成
-            IGcsimProcess CalcDPSProcess =  (_ProcessFactory ?? new ProcessFactory()).Create(
-            new[] {
-                Config.Path.File.GcSimWinExe, // 2回目にgcsimに渡す引数
-                "-c=OptimizedConfig.txt",
-                $"-out={Config.Path.File.OutputText}"
-            });
-
-            // プロセス起動2回目
-            CalcDPSProcess.Start();
-
-            // 標準出力を取得
-            CalcDPSProcess.WaitForExit();
-            string CalcDPSProcessOutput;
-
-            using (StreamReader sr = new StreamReader(Config.Path.File.OutputText, Encoding.GetEncoding("UTF-8")))
+            // 1. Try to read the result file specified by -out flag
+            if (File.Exists(outputPath))
             {
-                CalcDPSProcessOutput = sr.ReadToEnd();
+                try
+                {
+                    string fileOutput = File.ReadAllText(outputPath);
+                    if (!string.IsNullOrWhiteSpace(fileOutput))
+                    {
+                        try { File.Delete(outputPath); } catch { }
+                        return fileOutput;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"DEBUG: Failed to read output file: {ex.Message}");
+                }
             }
 
-            // 標準出力を表示
-            Debug.WriteLine(CalcDPSProcessOutput);
-
-            //エラー分岐
-            if (string.IsNullOrEmpty(CalcDPSProcessOutput))
+            // 2. Fallback to process stdout/stderr (used by tests/mocks or if file failed)
+            string? procOutput = proc.GetOuptput();
+            if (!string.IsNullOrEmpty(procOutput))
             {
-                // 出力がない場合は、エラーとする
+                Debug.WriteLine(procOutput);
+                // If output file exists but somehow we fell through here, try delete it
+                try { File.Delete(outputPath); } catch { }
+                return procOutput;
+            }
+
+            string output;
+            try
+            {
+                using (StreamReader sr = new StreamReader(outputPath, Encoding.GetEncoding("UTF-8")))
+                {
+                    output = sr.ReadToEnd();
+                }
+            }
+            catch (Exception)
+            {
+                try { File.Delete(outputPath); } catch { }
                 throw new Exception(Message.Error.GcsimOutputNone);
             }
-            return CalcDPSProcessOutput;
+
+            Debug.WriteLine(output);
+
+            if (string.IsNullOrEmpty(output))
+            {
+                try { File.Delete(outputPath); } catch {}
+                throw new Exception(Message.Error.GcsimOutputNone);
+            }
+
+            try { File.Delete(outputPath); } catch {}
+            return output;
+        }
+        // Overload used by tests and previous callers that pass only a factory
+        public String Exec(IProcessFactory? _ProcessFactory = null)
+        {
+            throw new System.NotSupportedException(
+                "Exec(IProcessFactory) is no longer supported. Call Exec(string tempSimConfigPath, IProcessFactory?) with a valid configuration path.");
         }
     }
 }

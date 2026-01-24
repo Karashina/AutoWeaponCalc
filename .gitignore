@@ -20,3 +20,6 @@ resource/execBinary/gcsim.exe
 resource/input/config.txt
 resource/input/temp.txt
 resource/input/artifacts.csv
+/scripts
+.github/copilot-instructions.md
+/.github/work-logs
