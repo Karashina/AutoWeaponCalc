@@ -27,7 +27,7 @@ namespace Test.Methods
             var input = new StringReader(data);
             Console.SetIn(input);
 
-            UserInput expectOutput = new UserInput("Jean", "sword", "0", "y");
+            UserInput expectOutput = new UserInput("Jean", "sword", "0", "y", "y");
             Assert.Equivalent(expectOutput, _Preparation.Startup());
         }
 
@@ -36,7 +36,7 @@ namespace Test.Methods
         {
             var input = new StringReader("\n\n");
             Console.SetIn(input);
-            UserInput expectOutput = new UserInput("", "", "0", "y");
+            UserInput expectOutput = new UserInput("", "", "0", "y", "y");
             Assert.Equivalent(expectOutput,  _Preparation.Startup());
         }
     }

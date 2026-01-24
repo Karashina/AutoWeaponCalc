@@ -7,7 +7,7 @@ namespace Test.Methods
         [Fact(DisplayName="空文字列が含まれていない場合Falseを返す")]
         public void Nomal()
         {
-            UserInput InitialSetting = new UserInput("Jean", "sword", "y", "0");
+            UserInput InitialSetting = new UserInput("Jean", "sword", "y", "0", "y");
 
             bool actual = InitialSetting.IsSetPropertyNullOrEmpty();
 
@@ -21,7 +21,7 @@ namespace Test.Methods
         [InlineData("Jean", "sword", "y", "")]
         public void Anomaly(string CharacterName, string WeaponType, string WeaponRefineRank, string ArtifactModeSel)
         {
-            UserInput InitialSetting = new UserInput(CharacterName, WeaponType, WeaponRefineRank, ArtifactModeSel);
+            UserInput InitialSetting = new UserInput(CharacterName, WeaponType, WeaponRefineRank, ArtifactModeSel, "y");
 
             bool actual = InitialSetting.IsSetPropertyNullOrEmpty();
 

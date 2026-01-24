@@ -1,39 +1,55 @@
 using System.Diagnostics;
-
+using System.Text;
 using CalcsheetGenerator.Interfaces;
 
 namespace CalcsheetGenerator.Module
 {
-    public partial class GcsimProcess : IGcsimProcess
+    public class GcsimProcess : IGcsimProcess
     {
-        private Process? _Process;
+        private Process _Process;
+        private string[] _Args;
+        private object _Lock = new object();
 
         public GcsimProcess(string[] args)
         {
-            this._Process = new Process();
-            this._Process.StartInfo = new ProcessStartInfo {
-                FileName = args[0],
-                Arguments = String.Join(" ", args.Skip(1).ToArray()),
-                CreateNoWindow = true, // ウィンドウを表示しない
-                UseShellExecute = false, // ウィンドウを表示しない
-                RedirectStandardError = true, // 標準出力および標準エラー出力を取得可能にする
-                RedirectStandardOutput = true // 標準出力および標準エラー出力を取得可能にする
-            };
+            _Args = args;
+            var startInfo = new ProcessStartInfo();
+            startInfo.FileName = args[0];
+            var sb = new StringBuilder();
+            for (int i = 1; i < args.Length; i++) {
+                sb.Append(args[i]);
+                sb.Append(' ');
+            }
+            startInfo.Arguments = sb.ToString();
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            _Process = new Process();
+            _Process.StartInfo = startInfo;
         }
 
-        public virtual void Start()
+        public void Start()
         {
-            this._Process?.Start();
+            lock (_Lock)
+            {
+                _Process.Start();
+            }
         }
 
-        public virtual void WaitForExit()
+        public void WaitForExit()
         {
-            this._Process?.WaitForExit();
+            _Process.WaitForExit();
         }
 
-        public virtual string? GetOuptput()
+        public String GetOutput()
         {
-            return this._Process?.StandardOutput.ReadToEnd();
+            var output = _Process.StandardOutput.ReadToEnd();
+            var err = _Process.StandardError.ReadToEnd();
+            return output + err;
+        }
+        public string? GetOuptput()
+        {
+            return GetOutput();
         }
     }
 }
