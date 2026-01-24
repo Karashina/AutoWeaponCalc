@@ -707,7 +707,8 @@ namespace CalcsheetGenerator
         // Overload used by tests and previous callers that pass only a factory
         public String Exec(IProcessFactory? _ProcessFactory = null)
         {
-            return Exec(string.Empty, _ProcessFactory);
+            throw new System.NotSupportedException(
+                "Exec(IProcessFactory) is no longer supported. Call Exec(string tempSimConfigPath, IProcessFactory?) with a valid configuration path.");
         }
     }
 }
