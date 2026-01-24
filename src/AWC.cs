@@ -28,7 +28,7 @@ namespace CalcsheetGenerator
         private static ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
         private static IFileManager _FileManager = FileManager.GetInstance();
         private static IGcsimManager _GcsimManager = GcsimManager.GetInstance();
-        private static object tableLock = new object();
+        private static readonly object tableLock = new object();
 
         // Optimized Regex patterns
         private static readonly Regex PlainTextDpsRegex = new Regex(@"total\s+avg\s+dps\s*:\s*([0-9]+\.?[0-9]*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
@@ -304,7 +304,11 @@ namespace CalcsheetGenerator
                     return new string[] { m.Groups[1].Value, "0", m.Groups[1].Value, "0" };
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // Intentionally ignore parse errors here and fall back to JSON-style parsing below.
+                Debug.WriteLine($"Plain-text gcsim output parsing failed for '{CharacterName}': {ex}");
+            }
 
             // 2. Fallback: Parse JSON output structure (legacy format)
             MatchCollection nameMatches = JsonNameRegex.Matches(gcsimOutput);
@@ -707,7 +711,8 @@ namespace CalcsheetGenerator
         // Overload used by tests and previous callers that pass only a factory
         public String Exec(IProcessFactory? _ProcessFactory = null)
         {
-            return Exec(string.Empty, _ProcessFactory);
+            throw new System.NotSupportedException(
+                "Exec(IProcessFactory) is no longer supported. Call Exec(string tempSimConfigPath, IProcessFactory?) with a valid configuration path.");
         }
     }
 }

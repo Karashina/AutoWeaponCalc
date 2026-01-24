@@ -6,9 +6,9 @@ namespace CalcsheetGenerator.Module
 {
     public class GcsimProcess : IGcsimProcess
     {
-        private Process _Process;
-        private string[] _Args;
-        private object _Lock = new object();
+        private readonly Process _Process;
+        private readonly string[] _Args;
+        private readonly object _Lock = new object();
 
         public GcsimProcess(string[] args)
         {
@@ -20,7 +20,7 @@ namespace CalcsheetGenerator.Module
                 sb.Append(args[i]);
                 sb.Append(' ');
             }
-            startInfo.Arguments = sb.ToString();
+            startInfo.Arguments = sb.ToString().TrimEnd();
             startInfo.UseShellExecute = false;
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
