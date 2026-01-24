@@ -28,7 +28,7 @@ namespace CalcsheetGenerator
         private static ISettingFileWriter _SettingFileWriter = SettingFileWriter.GetInstance();
         private static IFileManager _FileManager = FileManager.GetInstance();
         private static IGcsimManager _GcsimManager = GcsimManager.GetInstance();
-        private static object tableLock = new object();
+        private static readonly object tableLock = new object();
 
         // Optimized Regex patterns
         private static readonly Regex PlainTextDpsRegex = new Regex(@"total\s+avg\s+dps\s*:\s*([0-9]+\.?[0-9]*)", RegexOptions.IgnoreCase | RegexOptions.Compiled);
