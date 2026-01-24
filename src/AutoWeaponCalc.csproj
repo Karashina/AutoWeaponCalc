@@ -13,9 +13,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <!-- Publish-specific settings (moved out of CI build path).
+         To publish a single-file self-contained binary, pass these properties
+         when invoking `dotnet publish`, for example:
+         `dotnet publish -c Release -r win-x64 /p:PublishSingleFile=true /p:SelfContained=true`
+    -->
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="AWC.old.cs" />
