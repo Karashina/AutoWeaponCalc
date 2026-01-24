@@ -1,13 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
   </PropertyGroup>
+
+  <ItemGroup>
     <PackageReference Include="Pose" Version="1.2.1" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
@@ -20,13 +20,17 @@
     </PackageReference>
     <PackageReference Include="Moq" Version="4.18.4" />
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\src\AutoWeaponCalc.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <None Remove="Methods\" />
   </ItemGroup>
+
   <ItemGroup>
     <Folder Include="Methods\" />
   </ItemGroup>
+
 </Project>
