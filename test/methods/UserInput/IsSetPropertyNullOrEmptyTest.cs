@@ -16,7 +16,7 @@ namespace Test.Methods
 
         [Theory(DisplayName="空文字列が含まれている場合Trueを返す")]
         [InlineData("", "sword", "y", "0")]
-        [InlineData("Jean", "", "y", "0")]
+        // [InlineData("Jean", "", "y", "0")] // WeaponType is no longer validated
         [InlineData("Jean", "sword", "", "0")]
         [InlineData("Jean", "sword", "y", "")]
         public void Anomaly(string CharacterName, string WeaponType, string WeaponRefineRank, string ArtifactModeSel)
