@@ -20,7 +20,7 @@ namespace CalcsheetGenerator.Module
                 sb.Append(args[i]);
                 sb.Append(' ');
             }
-            startInfo.Arguments = sb.ToString();
+            startInfo.Arguments = sb.ToString().TrimEnd();
             startInfo.UseShellExecute = false;
             startInfo.RedirectStandardOutput = true;
             startInfo.RedirectStandardError = true;
