@@ -45,7 +45,7 @@ namespace CalcsheetGenerator
 
                 // Get user settings
                 UserInput? searchSettings = _Preparation.Startup();
-                Console.WriteLine($"DEBUG: Startup returned CharacterName={searchSettings?.CharacterName} WeaponType={searchSettings?.WeaponType}");
+                
 
                 // Validate settings
                 if (searchSettings == null || searchSettings.IsSetPropertyNullOrEmpty())
@@ -56,7 +56,7 @@ namespace CalcsheetGenerator
                 // Determine weapon type if not explicitly provided or for validation
                 string weaponType = "nil";
                 List<CharData> charList = _SettingFileReader.GetCharList() ?? new List<CharData>();
-                Console.WriteLine($"DEBUG: CharList count: {charList.Count}");
+                
                 
                 var targetChar = charList.FirstOrDefault(c => c.CharName == searchSettings.CharacterName);
                 if (targetChar != null)
@@ -66,13 +66,15 @@ namespace CalcsheetGenerator
 
                 // Prepare output table
                 DataTable outputDataTable = new DataTable("Table");
-                Console.WriteLine($"DEBUG: _GcsimManager is null? {_GcsimManager == null}");
-                Console.WriteLine($"DEBUG: _SettingFileWriter is null? {_SettingFileWriter == null}");
                 
-                // Add columns (Weapon Name, Refinement, DPS)
+                
+                // Add columns (Weapon Name, Refinement, Individual DPS, Individual DPS SD, Team DPS, Team DPS SD)
                 outputDataTable.Columns.Add("武器名");
                 outputDataTable.Columns.Add("精錬R");
-                outputDataTable.Columns.Add("DPS");
+                outputDataTable.Columns.Add("個人DPS");
+                outputDataTable.Columns.Add("個人DPS_標準偏差");
+                outputDataTable.Columns.Add("編成DPS");
+                outputDataTable.Columns.Add("編成DPS_標準偏差");
 
                 if (_GcsimManager == null) throw new InvalidOperationException("_GcsimManager is not initialized.");
                 IGcsim gcsimInstance = _GcsimManager.CreateGcsimInstance();
@@ -85,7 +87,7 @@ namespace CalcsheetGenerator
                     new List<ArtifactData>{new ArtifactData(ArtifactPieces._4pc, "", "")}; // Dummy artifact if disabled
 
                 if (artifactList == null) artifactList = new List<ArtifactData>(); 
-                Console.WriteLine($"DEBUG: ArtifactList count: {artifactList.Count}");
+                
 
                 // Main calculation loop
                 foreach (ArtifactData artifact in artifactList)
@@ -113,7 +115,7 @@ namespace CalcsheetGenerator
         {
             if (artifact == null || settings == null) return;
             
-            Console.WriteLine($"DEBUG: Processing Artifact {artifact.Name1}_{artifact.Name2}");
+            
             if (isArtifactModeEnabled) {
                 Console.WriteLine($"{Message.Notice.ProcessStart}{artifact.Name1} {artifact.Name2}");
             }
@@ -121,7 +123,7 @@ namespace CalcsheetGenerator
             List<WeaponData> weaponList = _SettingFileReader.GetWeaponList(weaponType, settings);
             if (weaponList == null) weaponList = new List<WeaponData>();
             
-            Console.WriteLine($"DEBUG: WeaponList count: {weaponList.Count}");
+            
 
             string baseTemplateContent = _SettingFileReader.GetTextFileContent(Config.Path.File.SimConfigText);
 
@@ -180,7 +182,7 @@ namespace CalcsheetGenerator
                 Directory.CreateDirectory(Config.Path.Directory.Out);
             }
 
-            Console.WriteLine("DEBUG: ExportDataTableToCsv about to be called");
+            
             _SettingFileWriter.ExportDataTableToCsv(outputTable, Config.Path.Directory.Out + csvFileName, null);
 
             outputTable.Clear(); // Clear table for next artifact set
@@ -239,7 +241,7 @@ namespace CalcsheetGenerator
 
                 // Create unique temp sim config
                 string tempSimPath = Path.Combine(Path.GetTempPath(), $"sim_{Guid.NewGuid():N}.txt");
-                Console.WriteLine($"DEBUG: tempSimPath={tempSimPath}");
+                
                 
                 _SettingFileWriter.WriteText(tempSimPath, Append: false, replacedContent);
 
@@ -256,7 +258,7 @@ namespace CalcsheetGenerator
                     // If calculation fails, log and continue with 0 DPS
                     Console.WriteLine("ERROR: Execution Failed.");
                     Console.WriteLine($"Exception: {ge.Message}");
-                    Console.WriteLine($"DEBUG: tempSimPath={tempSimPath}");
+                    
                     Console.WriteLine("----- GENERATED CONFIG START -----");
                     Console.WriteLine(replacedContent);
                     Console.WriteLine("----- GENERATED CONFIG END -----");
@@ -265,21 +267,30 @@ namespace CalcsheetGenerator
                          Console.WriteLine(gcsimOutput);
                          Console.WriteLine("----- GCSIM OUTPUT END -----");
                     }
-                    Console.WriteLine("DEBUG: Caught exception from Gcsim.Exec, continuing with DPS=0");
+                    
                 }
 
-                string formattedDps = weaponDpsParams[0];
-                if (decimal.TryParse(weaponDpsParams[0], NumberStyles.Any, CultureInfo.InvariantCulture, out var d))
+                // Format each DPS value (character DPS, character std, team DPS, team std)
+                string FormatDps(string raw)
                 {
-                    formattedDps = d.ToString("0.##", CultureInfo.InvariantCulture);
+                    if (decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
+                    {
+                        return v.ToString("0.##", CultureInfo.InvariantCulture);
+                    }
+                    return raw ?? "0";
                 }
-                
-                Console.WriteLine($"{weapon.NameInternal}{critSuffix} Char DPS:{formattedDps}");
+
+                string charDpsFmt = FormatDps(weaponDpsParams.Length > 0 ? weaponDpsParams[0] : "0");
+                string charStdFmt = FormatDps(weaponDpsParams.Length > 1 ? weaponDpsParams[1] : "0");
+                string teamDpsFmt = FormatDps(weaponDpsParams.Length > 2 ? weaponDpsParams[2] : "0");
+                string teamStdFmt = FormatDps(weaponDpsParams.Length > 3 ? weaponDpsParams[3] : "0");
+
+                Console.WriteLine($"{weapon.NameInternal}{critSuffix} Char DPS:{charDpsFmt} (+/-{charStdFmt}) Team DPS:{teamDpsFmt} (+/-{teamStdFmt})");
 
                 lock (tableLock)
                 {
-                    table.Rows.Add(weapon.NameJapanese, weaponRefineRank, formattedDps);
-                    Console.WriteLine($"DEBUG: Added row for {weapon?.NameInternal} DPS={formattedDps}");
+                    table.Rows.Add(weapon.NameJapanese, weaponRefineRank, charDpsFmt, charStdFmt, teamDpsFmt, teamStdFmt);
+                    
                 }
 
                 // Cleanup
@@ -608,26 +619,39 @@ namespace CalcsheetGenerator
 
         public void ExportDataTableToCsv(DataTable OutputDataTable, string CsvFileName, IStreamWriterFactory? StreamWriterFactory=null)
         {
+            // Ensure parent directory exists
+            try { System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(CsvFileName) ?? ""); } catch {}
+
+            bool fileExists = File.Exists(CsvFileName);
+            bool writeHeader = true;
+            if (fileExists)
+            {
+                try
+                {
+                    var fi = new FileInfo(CsvFileName);
+                    if (fi.Length > 0) writeHeader = false;
+                }
+                catch
+                {
+                    writeHeader = true;
+                }
+            }
+
             using (IStreamWriter CsvWriter = (StreamWriterFactory ?? new StreamWriterFactory()).Create(CsvFileName, true, Encoding.UTF8))
             {
-                //ヘッダーを出力
-                CsvWriter.WriteLine(string.Join(
-                    ",",
-                    OutputDataTable
-                        .Columns
-                        .Cast<DataColumn>()
-                        .Select(c => c.Caption)
-                        .Select(field => field.ToString())
-                ));
-                //内容を出力
+                // ヘッダはファイルが空のときだけ出力（重複防止）
+                if (writeHeader)
+                {
+                    CsvWriter.WriteLine(string.Join(",",
+                        OutputDataTable.Columns.Cast<DataColumn>().Select(c => c.Caption)
+                    ));
+                }
+
+                // 内容を出力
                 foreach (DataRow CsvRow in OutputDataTable.Rows)
                 {
-                    CsvWriter.WriteLine(string.Join(
-                    ",",
-                    CsvRow
-                        .ItemArray
-                        .Select(i => i?.ToString())
-                        .Select(field => field?.ToString())
+                    CsvWriter.WriteLine(string.Join(",",
+                        CsvRow.ItemArray.Select(i => i?.ToString() ?? "")
                     ));
                 }
             }
@@ -667,9 +691,8 @@ namespace CalcsheetGenerator
                         return fileOutput;
                     }
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
-                    Console.WriteLine($"DEBUG: Failed to read output file: {ex.Message}");
                 }
             }
 
